@@ -1,6 +1,6 @@
 import pandas as pd 
 import requests
-from bs4 import beautifulsoup4 # BeautifulSoupのインポート
+from bs4 import beautifulsoup4  # BeautifulSoupのインポート
 
 # データフレームの作成
 
