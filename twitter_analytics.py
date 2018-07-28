@@ -38,7 +38,7 @@ for tweet in tweepy.Cursor(api.user_timeline,screen_name = "never_be_a_pm",exclu
 			time.sleep(60 * 15) # 15分で解決するらしいよ
 
 #csv出力
-with open('today.csv', 'w',newline='',encoding='utf-8') as f:
+with open('20180728.csv', 'w',newline='',encoding='utf-8') as f:
     writer = csv.writer(f, lineterminator='\n')
     writer.writerow(["id","created_at","text","fav","RT"])
     writer.writerows(tweet_data)
