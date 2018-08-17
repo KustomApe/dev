@@ -7,31 +7,6 @@ import csv
 import time
 import json
 
-#Tweepy
-auth = KEYS['consumer_key'],KEYS['consumer_secret'],KEYS['access_token'],KEYS['access_secret']
-
-#APIインスタンスを作成
-api = tweepy.API(auth)
-tweets = tweet_search('#巨乳', oath_key_dict)
-
-KEYS = {
-    'CONSUMER_KEY' : 'PhmPFIDjTcbaxeRmqXqK0KZVR',
-    'CONSUMER_SECRET' : 'TLIWUadER3B5zySncWwHT7aG1Vyg8evWelvfT9Z9wXXznqQ6uR',
-    'ACCESS_TOKEN' : '87425177-4dkwezCSg5Ux58X2NId3WE2XilzzSX9K7hv2KG9KQ',
-    'ACCESS_SECRET' : '6htnT5yE0zgGC67lfHZ4y9DU21jGwufRtDkfXgQZoJKW7',
-}
-
-tweet_data = []
-
-for tweet in tweepy.Cursor(api.user_timeline, screen_name= 'never_be_a_pm', exclude_replies=True).items():
-    if tweets in tweet:
-        try:
-            tweet_data.append([tweet.id, tweet.created_at, tweet.text.replace('\n', ''), tweets, tweet.favorite_counte, tweet.retweet_count])
-            print (tweet_data)
-        except Exception as e:
-                time.sleep(60 * 15)
-
-
 def create_oath_session(oath_key_dict):
     twitter = OAuth1Session(KEYS['consumer_key'],KEYS['consumer_secret'],KEYS['access_token'],KEYS['access_secret'])
     return oath
@@ -50,6 +25,35 @@ def tweet_search(search_word, oath_key_dict):
         return None
     tweets = json.loads(responce.text)
     return tweets
+
+KEYS = {
+    'CONSUMER_KEY' : 'PhmPFIDjTcbaxeRmqXqK0KZVR',
+    'CONSUMER_SECRET' : 'TLIWUadER3B5zySncWwHT7aG1Vyg8evWelvfT9Z9wXXznqQ6uR',
+    'ACCESS_TOKEN' : '87425177-4dkwezCSg5Ux58X2NId3WE2XilzzSX9K7hv2KG9KQ',
+    'ACCESS_SECRET' : '6htnT5yE0zgGC67lfHZ4y9DU21jGwufRtDkfXgQZoJKW7',
+}
+
+CONSUMER_KEY = 'PhmPFIDjTcbaxeRmqXqK0KZVR'
+CONSUMER_SECRET = 'TLIWUadER3B5zySncWwHT7aG1Vyg8evWelvfT9Z9wXXznqQ6uR'
+ACCESS_TOKEN = '87425177-4dkwezCSg5Ux58X2NId3WE2XilzzSX9K7hv2KG9KQ'
+ACCESS_SECRET = '6htnT5yE0zgGC67lfHZ4y9DU21jGwufRtDkfXgQZoJKW7'
+
+#Tweepy
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+
+#APIインスタンスを作成
+api = tweepy.API(auth)
+tweets = tweet_search('#巨乳', oath_key_dict)
+
+tweet_data = []
+
+for tweet in tweepy.Cursor(api.user_timeline, screen_name= 'never_be_a_pm', exclude_replies=True).items():
+    if tweets in tweet:
+        try:
+            tweet_data.append([tweet.id, tweet.created_at, tweet.text.replace('\n', ''), tweets, tweet.favorite_counte, tweet.retweet_count])
+            print (tweet_data)
+        except Exception as e:
+                time.sleep(60 * 15)
 
 ### Execute                                                                                                                                                       
 with open('today.csv', 'w',newline='',encoding='utf-8') as f:
