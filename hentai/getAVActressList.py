@@ -8,7 +8,7 @@ import time
 もろもろの設定
 ***************************************"""
 browser = webdriver.Chrome(executable_path='/Users/A-SK/dev/hentai/chromedriver') 
-df = pandas.read_csv('default.csv', index_col=0) #女優名・女優の画像URLが列に入っている
+df = pandas.DataFrame()
 url = "http://wav.tv/actresses/" #エロサイトの女優リストのページ
 
 """******************************
@@ -19,6 +19,7 @@ PAGER_NEXT = "a.m-pagination--next.is-last.step" #次へボタン
 POSTS = "div.m-actress-wrap"
 ACTRESS_NAME = ".m-actress--title" #女優名
 IMAGE = ".m-actress--thumbnail-img img" #サムネイル画像のURL、srcで画像ファイルを取得できる
+DETAIL = ".m-actress--description"
 
 """***************************************
 実行部分
@@ -40,9 +41,10 @@ while True: #continue until getting the last page
                 print(name)
                 thumnailURL = post.find_element_by_css_selector(IMAGE).get_attribute("src")
                 print(thumnailURL)
-                se = pandas.Series([name,thumnailURL],["name", "image"])    
+                detail = post.find_element_by_css_selector(DETAIL).text
+                print(detail)
+                se = pandas.Series([name,thumnailURL, detail],["name", "image", "detail"])
                 df = df.append(se, ignore_index=True)
-                blog = post.find_element_by_css_selector()
             except Exception as e:
                 print(e)
 
@@ -58,9 +60,9 @@ while True: #continue until getting the last page
     print(df)
     print('Finished Scraping and writing output to csv......')
 
-    open('output.csv', 'w',)
+    open('output_02.csv', 'w',)
 #6
 print("Finished Scraping. Writing CSV.......")
-df.to_csv("output.csv")
+df.to_csv("output_02.csv")
 print("DONE")
 
