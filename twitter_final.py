@@ -10,7 +10,7 @@ import time
 browser = webdriver.Chrome(
     executable_path='/Users/A-SK/dev/hentai/chromedriver')
 df = pandas.DataFrame()
-url = "http://wav.tv/actresses/"  # エロサイトの女優リストのページ
+url = "https://eisukenakanishi.com/"  # エロサイトの女優リストのページ
 
 """******************************
 CSS SELECTORの設定

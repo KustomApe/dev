@@ -236,10 +236,10 @@ class TweetsGetterByUser(TweetsGetter):
 if __name__ == '__main__':
  
     # キーワードで取得
-    getter = TweetsGetter.bySearch(u'c35ローレル')
+    getter = TweetsGetter.bySearch(u'anybot.me')
     
     # ユーザーを指定して取得 （screen_name）
-    # getter = TweetsGetter.byUser('user_name')
+    # getter = TweetsGetter.byUser('redsk8x')
  
     cnt = 0
     
@@ -254,7 +254,7 @@ if __name__ == '__main__':
         print(tweet_data)
 
     #csv出力
-    with open('sakura.csv', 'w',newline='',encoding='utf-8') as f:
+    with open('anybot01.csv', 'w',newline='',encoding='utf-8') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(["id","created_at","text"])
         writer.writerows(tweet_data)
