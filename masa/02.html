@@ -1,0 +1,117 @@
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body style="width:500px;height:300px;">
+</body>
+<script>
+    window.onload =function(){
+        //label作成
+        function Label(id,textContent){
+            this.id = id;
+            this.textContent = textContent;
+            this.label1 = label1;
+        };
+        function label1(id,textContent){
+            var label = document.createElement("label");
+            label.for = id;
+            label.textContent = textContent;
+            form.appendChild(label);
+        };
+        //input作成
+        function input(type,id,name,value){
+            this.type = type;
+            this.id = id;
+            this.name = name;
+            this.value = value;
+            this.input1 = input1;
+        };
+        function input1(type,id,name,value){
+            var input = document.createElement("input");
+            input.type =type;
+            input.id = id;
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        };
+        //option作成
+        function option(value,textcontent){
+            this.value = value;
+            this.textContent = textContent;
+            this.option1 = option1;
+        };
+        function option1(value,textContent){
+            var option = document.createElement("option");
+            option.value = value;
+            option.textContent = textContent;
+            select.appendChild(option);
+        };
+        var form = document.createElement("form");
+        form.name = "all";
+        document.body.appendChild(form);
+        label1("name","名前：");
+        input1("text","name","name","名前");
+        label1("sex","性別：");
+        input1("radio","male","male","male");
+        label1("male","男");
+        input1("radio","female","female","female");
+        label1("female","女");
+        label1("compname","所属会社");
+        var select = document.createElement("select");
+        select.name = "compname";
+        select.id = "compname";
+        form.appendChild(select);
+        option1("rs","両備システムズ");
+        option1("rss","リョービシステムサービス");
+        option1("rsi","両備システムイノベーションズ");
+        option1("rsol","両備システムソリューションズ");
+        option1("rios","リオス");
+        option1("sc","エス・シー・ラボ");
+        option1("sink","シンク");
+        label1("produce","自己紹介");
+        var textarea = document.createElement("textarea");
+        textarea.name = "msg";
+        textarea.cols = "30";
+        textarea.rows = "10";
+        form.appendChild(textarea);
+        input1("checkbox","check","check","check");
+        label1("check","内容に間違いはありません。");
+        input1("button","button","button","送信");
+        document.getElementById("button").addEventListener("click",
+        function(){
+             //名前取得
+             var name1 = document.all.name.value;
+            console.log(name1);
+            //性別取得
+            var seibetu = document.all.sex;
+            var result;
+            for(var i=0; i<seibetu.length; i++){
+                if (seibetu[i].checked) {
+                    //選択されたラジオボタンのvalue値を取得する
+                    result = seibetu[i].value;
+                    break;
+                };
+            };
+            console.log(result);
+            //会社名取得
+            const compname1 = document.all.compname;
+            const num = compname1.selectedIndex;
+            const str = compname1.options[num].value;
+            console.log(str);
+            //自己紹介
+            var produce1 = document.all.msg.value;
+            console.log(produce1);
+            //チェックボックス
+            var flag = false;
+            //チェックされているか確認する
+            if( document.all.check.checked ){
+                flag = true; 
+                console.log(flag); 
+            }else{
+                alert("チェックをつけてください。")
+            }
+        }, false
+        );
+    };
+</script>
+</html>
