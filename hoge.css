@@ -1,0 +1,17 @@
+/* Common style */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.justify span a {
+  color: #fff;
+}
+
+nav#nav ul.nav_contents li {
+  list-style: none;
+  color: #f00;
+  float: left;
+  padding-right: 20px;
+}

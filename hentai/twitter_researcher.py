@@ -236,10 +236,17 @@ class TweetsGetterByUser(TweetsGetter):
 if __name__ == '__main__':
  
     # キーワードで取得
+<<<<<<< HEAD
     getter = TweetsGetter.bySearch(u'#ニート')
     
     # ユーザーを指定して取得 （screen_name）
     # getter = TweetsGetter.byUser('kimi_kana_')
+=======
+    getter = TweetsGetter.bySearch(u'c35ローレル')
+    
+    # ユーザーを指定して取得 （screen_name）
+    # getter = TweetsGetter.byUser('user_name')
+>>>>>>> 3e2b1bed6d7d914a70cd8b80f045656a65b3128b
  
     cnt = 0
     
