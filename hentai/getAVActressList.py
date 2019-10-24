@@ -66,5 +66,5 @@ while True:  #continue until getting the last page
     )
 #6
 print("Finished Scraping. Writing CSV.......")
-df.to_csv("output_02.csv")
+df.to_csv("output_03.csv")
 print("DONE")
