@@ -17,9 +17,8 @@ def geocode():
    longitude = driver.find_element_by_xpath('/html/body/span[1]/b[2]').text
    return latitude,longitude
 
-query = 'rt'
-query2 = '応募方法'
-query3 = 'プレゼントキャンペーン'
+query = '応募方法'
+query2 = 'プレゼントキャンペーン'
 
 
 def get_oauth():
