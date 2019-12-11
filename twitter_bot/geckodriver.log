@@ -102,3 +102,11 @@ JavaScript error: https://abs.twimg.com/responsive-web/web/vendors~main.338d6a54
 1572039631217	Marionette	WARN	TLS certificate errors will be ignored for this session
 1572039815619	Marionette	INFO	Stopped listening on port 52444
 1572040902989	Marionette	INFO	Stopped listening on port 51094
+1575055025285	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "-marionette" "-foreground" "-no-remote" "-profile" "/var/folders/97/m2rn3l5n3sb2qbg0p5_d0lyc0000gn/T/rust_mozprofilex7a4cU"
+1575055026907	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: mozillaAddons
+1575055026908	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: telemetry
+1575055026908	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: resource://pdf.js/
+1575055026908	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: about:reader*
+1575055029946	Marionette	INFO	Listening on port 62005
+1575055029958	Marionette	WARN	TLS certificate errors will be ignored for this session
+1575055653009	Marionette	INFO	Stopped listening on port 62005
