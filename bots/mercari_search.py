@@ -22,13 +22,15 @@ for num in range(1,100):
            sold = "NOT SOLD"
        sub_title = item_box.find_element_by_class_name("items-box-body")
        title = sub_title.find_element_by_tag_name("h3").text
+       print(title)
        item_price = item_box.find_element_by_css_selector(".items-box-price")
        price_text = item_price.text
-       price_text = re.sub(r",", price_text).lstrip("¥ ")
-       price_text_int = int(price_text)
+       print(price_text)
+    #    price_text = re.sub(r",", price_text).lstrip("¥ ")
+    #    price_text_int = int(price_text)
        url = item_box.find_element_by_tag_name("a").get_attribute("href")
-       data  = pd.Series( [ sold,title,price_text_int,url ], index=df_main.columns )
-       grdata = pd.Series( [ sold,price_text_int ], index=df_graf.columns )
+       data  = pd.Series( [ sold,title,price_text,url ], index=df_main.columns )
+       grdata = pd.Series( [ sold,price_text ], index=df_graf.columns )
        df_main = df_main.append( data, ignore_index=True )
        df_graf = df_graf.append( grdata, ignore_index=True )
 print(df_main)

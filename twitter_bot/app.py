@@ -32,6 +32,6 @@ class TwitterBot:
             tweets = bot.find_element_by_xpath("//div[@data-testid='tweet']")
             print(tweets)
 
-ed = TwitterBot('KustomApe', 'Eano-1912')
+ed = TwitterBot('TwitterのID', 'TwitterのIDのPW')
 ed.login()
-ed.like_tweet('python')
+ed.like_tweet('機械学習')
