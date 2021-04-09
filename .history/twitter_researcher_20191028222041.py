@@ -248,7 +248,7 @@ class TweetsGetterByUser(TweetsGetter):
 if __name__ == '__main__':
 
     # キーワードで取得
-    getter = TweetsGetter.bySearch(u'c35ローレル')
+    getter = TweetsGetter.bySearch(u'援交')
 
     # ユーザーを指定して取得 （screen_name）
     # getter = TweetsGetter.byUser('bs_sox')

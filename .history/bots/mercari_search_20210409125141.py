@@ -25,9 +25,9 @@ for num in range(1,100):
        print(title)
        item_price = item_box.find_element_by_css_selector(".items-box-price")
        price_text = item_price.text
-       price_text = re.sub(r",", "", price_text).lstrip("¥")
+       print(price_text)
+       price_text = re.sub(r",", price_text).lstrip("¥")
        price_text_int = int(price_text)
-       print(price_text_int)
        url = item_box.find_element_by_tag_name("a").get_attribute("href")
        data  = pd.Series( [ sold,title,price_text,url ], index=df_main.columns )
        grdata = pd.Series( [ sold,price_text ], index=df_graf.columns )
