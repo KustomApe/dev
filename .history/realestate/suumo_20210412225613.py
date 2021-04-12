@@ -189,4 +189,4 @@ suumo_df.columns = [
 ]
 
 #csvファイルとして保存
-suumo_df.to_csv('suumo_tokyo_shinjuku.csv', sep='\t', encoding='utf-16')
+suumo_df.to_csv('suumo_yokohama_tsurumi_city.csv', sep='\t', encoding='utf-16')

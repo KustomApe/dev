@@ -267,7 +267,7 @@ if __name__ == '__main__':
         print(tweet_data)
 
     #csv出力
-    with open('demo.csv', 'w', newline='', encoding='utf-8') as f:
+    with open('sox03.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(["id", "created_at", "text"])
         writer.writerows(tweet_data)

@@ -6,7 +6,7 @@ from pandas import Series, DataFrame
 import time
 
 #URL（東京都足立区の賃貸住宅情報 検索結果の1ページ目）
-url = 'https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13104&cb=0.0&ct=9999999&et=9999999&cn=9999999&mb=0&mt=9999999&shkr1=03&shkr2=03&shkr3=03&shkr4=03&fw2=&srch_navi=1'
+url = 'https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=14&sc=14101&cb=0.0&ct=9999999&et=9999999&cn=9999999&mb=0&mt=9999999&shkr1=03&shkr2=03&shkr3=03&shkr4=03&fw2=&srch_navi=1'
 # 新宿区
 # https://suumo.jp/jj/chintai/ichiran/FR301FC001/?ar=030&bs=040&ta=13&sc=13104&cb=0.0&ct=9999999&et=9999999&cn=9999999&mb=0&mt=9999999&shkr1=03&shkr2=03&shkr3=03&shkr4=03&fw2=&srch_navi=1
 
@@ -189,4 +189,4 @@ suumo_df.columns = [
 ]
 
 #csvファイルとして保存
-suumo_df.to_csv('suumo_tokyo_shinjuku.csv', sep='\t', encoding='utf-16')
+suumo_df.to_csv('suumo_yokohama_tsurumi_city.csv', sep='\t', encoding='utf-16')
