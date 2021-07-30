@@ -11,7 +11,6 @@ CS = 'MZnoEmT9STl5d85GAfkRwSNmErC8j9XG5fY026AqQnW3IVdUYM'  # Consumer Secret
 AT = '87425177-LSy9F09UKbG5eCItwiBg7HM3B6AcEuutvqSNqcdrO'  # Access Token
 AS = 'b6lkdCzyPOARacOBWblP0BSe9Hw33Zh4Fj10eVKQReLJr'  # Accesss Token Secert
 
-
 class TweetsGetter(object):
     __metaclass__ = ABCMeta
 
@@ -248,7 +247,7 @@ class TweetsGetterByUser(TweetsGetter):
 if __name__ == '__main__':
 
     # キーワードで取得
-    getter = TweetsGetter.bySearch(u'c35ローレル')
+    getter = TweetsGetter.bySearch(u'youtube トレンド')
 
     # ユーザーを指定して取得 （screen_name）
     # getter = TweetsGetter.byUser('bs_sox')
@@ -268,7 +267,7 @@ if __name__ == '__main__':
         print(tweet_data)
 
     #csv出力
-    with open('sox03.csv', 'w', newline='', encoding='utf-8') as f:
+    with open('lonley.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(["id", "created_at", "text"])
         writer.writerows(tweet_data)
