@@ -245,7 +245,7 @@ if __name__ == '__main__':
     # キーワードで取得
     getter = TweetsGetter.bySearch(u'最新技術')
 
-    # ユーザーを指定して取得 （screen_name）
+    # ユーザーを指定して取得 （screen_name
     # getter = TweetsGetter.byUser('nakanishi')
 
     cnt = 0
