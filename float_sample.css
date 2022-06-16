@@ -1,0 +1,11 @@
+ul.navigation {
+    display: block;
+}
+
+ul.navigation li {
+    float: left;
+}
+
+div#content {
+    clear: both;
+}
