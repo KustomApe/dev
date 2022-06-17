@@ -56,7 +56,10 @@ while True:
     print(df)
     print('Finished Scraping and writing output to csv......')
 
-    open('output_00.csv','w',)
+    open(
+        'output_00.csv',
+        'w',
+    )
 #6
 print("Finished Scraping. Writing CSV.......")
 df.to_csv("output_04.csv")

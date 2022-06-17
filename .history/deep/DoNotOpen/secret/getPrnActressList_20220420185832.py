@@ -24,7 +24,18 @@ DETAIL = ".m-actress--description"
 ***************************************"""
 
 browser.get(url)
+age = 31
 while True:
+    if age < 80:
+        #do something
+        age += 1
+        continue
+    else:
+        break
+#continue until getting the last page
+
+    #5-1
+
     if len(browser.find_elements_by_css_selector(PAGER_NEXT)) > 0:
         print("Starting to get posts...")
         posts = browser.find_elements_by_css_selector(POSTS)  #ページ内のタイトル複数
@@ -56,7 +67,10 @@ while True:
     print(df)
     print('Finished Scraping and writing output to csv......')
 
-    open('output_00.csv','w',)
+    open(
+        'output_00.csv',
+        'w',
+    )
 #6
 print("Finished Scraping. Writing CSV.......")
 df.to_csv("output_04.csv")
