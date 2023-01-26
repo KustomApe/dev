@@ -1,0 +1,10 @@
+<form method="post">
+    {% csrf_token %}
+    以下の会員を削除しますか？
+    <!-- {{ object }} -->
+    {% if object %}
+    <li>{{ object.user_id }} &nbsp &nbsp {{ object.name }} &nbsp &nbsp{{ object.address }}
+    </li>&nbsp
+    {% endif %}
+    <input type="submit" value="削除" />
+</form>

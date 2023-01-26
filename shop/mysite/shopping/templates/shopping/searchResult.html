@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>検索結果</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>キーワード "{{keyword}}" カテゴリ "{{category_name}}" の検索結果</h3>
+		<br />
+		<table>
+			<tr>
+				<th>商品名</th>
+				<th>商品の色</th>
+				<th>メーカー名</th>
+				<th>価格</th>
+			</tr>
+			{%for line in form%}
+			<tr>
+				<td><a href='/shopping/item/{{line.item_id}}'>{{line.name}}</a><sup>{{line.recommended}}</sup></td>
+				<td>{{line.color}}</td>
+				<td>{{line.manufacturer}}</td>
+				<td>{{line.price}}円</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% if message %}
+		<div>{{ message }}</div>
+		{% endif %}
+		<br />
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+	<script>
+		rec = document.getElementsByTagName('sup');
+		for (i = 0; i < rec.length; i++) {
+			if (rec[i].innerText === 'True') {
+				rec[i].innerText = 'オススメ!';
+			}
+			else {
+				rec[i].innerText = null;
+			}
+		}
+	</script>
+</html>

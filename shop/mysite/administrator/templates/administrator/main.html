@@ -1,0 +1,48 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>管理者メインページ</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>管理者メインページ</h3>
+		<h4>商品の検索</h4>
+		<form action='{% url "administrator:item_list" %}' method='GET'>
+			<!-- {% csrf_token %} -->
+			<table>
+				{{ search_form }}
+				<tr>
+					<td colspan='2'><input type='submit' value='検索' /></td>
+				</tr>
+			</table><br/>
+		</form>
+		<br />
+		<h4>購入履歴の検索</h4>
+		<form action='{% url "administrator:purchase_list" %}' method='GET'>
+			<!-- {% csrf_token %} -->
+			<table>
+				<tr>
+					<th>会員ID</th>
+					<td>{{ purchase_search_form.keyword }}</td>
+				</tr>
+				<tr>
+					<th>注文日</th>
+					<td>
+						{{ purchase_search_form.from_y }}/
+						{{ purchase_search_form.from_m }}/
+						{{ purchase_search_form.from_d }}～
+						{{ purchase_search_form.to_y }}/
+						{{ purchase_search_form.to_m }}/
+						{{ purchase_search_form.to_d }}
+					</td>
+				</tr>
+				<tr>
+					<td colspan='2'><input type='submit' value='検索' /></td>
+				</tr>
+			</table><br/>
+		</form>
+		<br />
+		<a href='/administrator/logout/'>ログアウト</a><br/>
+	</body>
+</html>

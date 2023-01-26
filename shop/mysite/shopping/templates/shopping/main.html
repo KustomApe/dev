@@ -1,0 +1,41 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>商品検索</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>商品の検索を行います。</h3>
+		<br />
+		<form action='/shopping/search/' method='GET'>
+			{{ search_form }}
+			<input type='submit' value='検索' /><br/>
+		</form>
+		<a href='/shopping/cart/'>ショッピングカートを見る</a><br/><br/>
+		<a href='/shopping/purchaseHistory/'>購入履歴</a><br/><br/>
+		<div id='loginBtnDiv'>
+			<!-- ※ログインしていない場合には以下を表示<br /> -->
+			<a href='/account/login/'>ログイン</a><br /><br />
+		</div>
+		<div id='infoDiv' style="display:none">
+			<!-- ※ログイン済の場合には以下を表示<br /> -->
+			<h6>ようこそ{{ request.session.user_name }}さん</h6>
+			<a href='/account/userInfo/'>会員情報の確認</a><br/>
+			<a href='/account/updateUser/'>会員情報の変更</a><br/>
+			<a href='/account/logout/'>ログアウト</a><br/>
+		</div>
+		<a href='/administrator/'>管理者ページ</a><br/>
+	</body>
+	<script>
+		var isLogin = "{{ request.session.is_login }}";
+		if (isLogin === "True") {
+			document.getElementById('infoDiv').style.display = 'block';
+        	document.getElementById('loginBtnDiv').style.display = 'none';
+		}
+		else {
+			document.getElementById('infoDiv').style.display = 'none';
+        	document.getElementById('loginBtnDiv').style.display = 'block';
+		}
+	</script>
+</html>

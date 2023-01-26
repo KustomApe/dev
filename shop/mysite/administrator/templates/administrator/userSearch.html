@@ -1,0 +1,31 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>会員IDの検索結果</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>会員IDの検索結果</h3>
+		<br />
+		<table>
+			<tr>
+				<th>会員ID</th>
+				<th>名前</th>
+				<th>住所</th>
+				<th></th>
+			</tr>
+			{% for user in user_list %}
+			<tr>
+				<td>{{ user.user_id }}</td>
+				<td>{{ user.name }}</td>
+				<td>{{ user.address }}</td>
+				<td><a href="{% url "administrator:user_update" user.user_id %}">変更</a>
+					<a href="{% url "administrator:user_delete" user.user_id %}">削除</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<a href='{% url "administrator:index" %}'>管理者メインページ</a>へ<br />
+	</body>
+</html>

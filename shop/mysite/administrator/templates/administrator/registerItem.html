@@ -1,0 +1,52 @@
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>商品の登録</title>
+		<link rel='stylesheet' type='text/css' href='style.css' />
+	</head>
+	<body>
+		<h3>商品の登録</h3>
+		<br />
+		<form action='registerItemConfirm.html' method='POST'>
+			<table>
+				<tr>
+					<th>商品名</th>
+					<td><input type='text' class='text' name='name' /></td>
+				</tr>
+				<tr>
+					<th>商品の色</th>
+					<td><input type='text' class='text' name='color' /></td>
+				</tr>
+				<tr>
+					<th>メーカー名</th>
+					<td><input type='text' class='text' name='manufacturer' /></td>
+				</tr>
+				<tr>
+					<th>カテゴリ</th>
+					<td>
+						<select name='category'>
+							<option selected value='2'>帽子</option>
+							<option value='3'>鞄</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>オススメ</th>
+					<td><input type='checkbox' name='recommend' />オススメする</td>
+				</tr>
+				<tr>
+					<th>価格</th>
+					<td><input type='text' class='id' name='price' />円</td>
+				</tr>
+				<tr>
+					<th>在庫数</th>
+					<td><input type='text' class='id' name='stock' />個</td>
+				</tr>
+				<tr>
+					<td colspan='2'><input type='submit' value='登録確認' /></td>
+				</tr>
+			</table>
+		</form>
+		<a href='main.html'>管理者メインページ</a>へ<br />
+	</body>
+</html>

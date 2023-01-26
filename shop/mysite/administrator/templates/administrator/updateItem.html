@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>商品の登録情報変更</title>
+		<link rel='stylesheet' type='text/css' href='style.css' />
+	</head>
+	<body>
+		<h3>商品の登録情報変更</h3>
+		<br />
+		<form action='updateItemConfirm.html' method='POST'>
+			<input type='hidden' name='itemId' value='1234' />
+			<table>
+				<tr>
+					<th>商品名</th>
+					<td><input type='text' class='text' name='name' value='麦わら帽子' /></td>
+				</tr>
+				<tr>
+					<th>商品の色</th>
+					<td><input type='text' class='text' name='color' value='黄色' /></td>
+				</tr>
+				<tr>
+					<th>メーカー名</th>
+					<td><input type='text' class='text' name='manufacturer' value='日本帽子製造' /></td>
+				</tr>
+				<tr>
+					<th>カテゴリ</th>
+					<td>
+						<select name='category'>
+							<option selected value='hat'>帽子</option>
+							<option value='bag'>鞄</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>オススメ</th>
+					<td><input type='checkbox' name='recommend' />オススメする</td>
+				</tr>
+				<tr>
+					<th>価格</th>
+					<td><input type='text' class='id' name='price' value='4980' />円</td>
+				</tr>
+				<tr>
+					<th>在庫数</th>
+					<td><input type='text' class='id' name='stock' value='12' />個</td>
+				</tr>
+				<tr>
+					<td colspan='2'><input type='submit' value='変更確認' /></td>
+				</tr>
+			</table>
+		</form>
+		<a href='main.html'>管理者メインページ</a>へ<br />
+	</body>
+</html>

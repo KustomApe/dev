@@ -1,0 +1,48 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>会員登録の確認</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>以下の情報で登録しますか？</h3>
+		<br />
+		<form action='/account/registerUserCommit/' method='POST'>
+			{% csrf_token %}
+			<table>
+				<tr>
+					<th>{{ register_form.id.label_tag }}</th>
+					<th>{{ register_form.id}}</th>
+				</tr>
+				<tr>
+					<th>{{ register_form.password1.label_tag }}</th>
+					<th>{{ register_form.password1}}</th>
+				</tr>
+				<tr id = 'pw2'>
+					<th>{{ register_form.password2.label_tag }}</th>
+					<th>{{ register_form.password2}}</th>
+				</tr>
+				<tr>
+					<th>{{ register_form.name.label_tag }}</th>
+					<th>{{ register_form.name}}</th>
+				</tr>
+				<tr>
+					<th>{{ register_form.address.label_tag }}</th>
+					<th>{{ register_form.address}}</th>
+				</tr>
+				<tr>
+					<td colspan='2'><input type='submit' value='登録' /></td>
+				</tr>
+			</table>
+		</form>
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+	<script>
+		inputs = document.getElementsByTagName('input');
+		for (i = 0; i < inputs.length-1; i++) {
+			inputs[i].readOnly= true;
+		}
+		document.getElementById('pw2').style.display = 'none';
+	</script>
+</html>

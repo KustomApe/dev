@@ -1,0 +1,36 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>商品の購入完了</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>以下の商品の購入を完了しました。</h3>
+		<br />
+		<table>
+			<tr>
+				<th>商品名</th>
+				<th>商品の色</th>
+				<th>メーカー名</th>
+				<th>単価</th>
+				<th>数量</th>
+			</tr>
+			{%for line in form%}
+			<tr>
+				<td>{{line.name}}</td>
+				<td>{{line.color}}</td>
+				<td>{{line.manufacturer}}</td>
+				<td>{{line.price}}円</td>
+				<td>{{line.amount}}個</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% if total_price %}
+		合計 {{ total_price }} 円<br />
+		清算方法 代金引換<br /><br />
+		配送先 {{ address }}<br /><br />
+		{% endif %}
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+</html>

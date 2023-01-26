@@ -1,0 +1,15 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>退会完了</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		{% if name %}
+		<h3>{{ name }}さん、退会処理を完了しました。</h3>
+		{% endif %}
+		<h3>またのご利用をお待ちしております。</h3>
+		<a href='/'>ログイン画面</a>へ<br />
+	</body>
+</html>

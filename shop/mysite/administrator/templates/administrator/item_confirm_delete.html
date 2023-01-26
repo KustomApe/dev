@@ -1,0 +1,12 @@
+<form method="post">
+    {% csrf_token %}
+    以下の商品を削除しますか？
+    <!-- {{ object }} -->
+    {% if object %}
+    <a href="{% url "administrator:item_detail" object.item_id %}">{{ object.name }}</a>
+    <li>{{ object.item_id }} &nbsp &nbsp {{ object.name }} &nbsp &nbsp{{ object.manufacturer }}&nbsp &nbsp{{ object.category }} &nbsp &nbsp
+        {{ object.color }} &nbsp &nbsp{{ object.price }}&nbsp &nbsp{{ object.stock }} &nbsp &nbsp{{ object.recommended }}
+    </li>&nbsp
+    {% endif %}
+    <input type="submit" value="削除" />
+</form>

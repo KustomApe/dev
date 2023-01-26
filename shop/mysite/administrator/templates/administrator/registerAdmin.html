@@ -1,0 +1,27 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>管理者登録</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>管理者情報を入力してください。</h3>
+		<br />
+		<form action='/administrator/registerAdmin/' method='POST'>
+			{% csrf_token %}
+			<table>
+				{{ register_form }}
+				<tr>
+					<td colspan='2'><input type='submit' value='登録確認' /></td>
+				</tr>
+			</table>
+			{% if register_form.captcha.errors %}
+			<div>{{ register_form.captcha.errors }}</div>
+			{% elif message %}
+			<div>{{ message }}</div>
+			{% endif %}
+		</form>
+		<a href='/administrator/'>管理者メインページ</a>へ<br />
+	</body>
+</html>

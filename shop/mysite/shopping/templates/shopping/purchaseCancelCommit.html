@@ -1,0 +1,48 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>注文キャンセル完了</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>以下の注文をキャンセルしました。</h3>
+		<br />
+		<table>
+			{%for line in form_purchase%}
+			<tr>
+				<th>注文日</th>
+				<td>{{line.booked_date}}</td>
+			</tr>
+			<tr>
+				<th>購入商品</th>
+				<td>
+					<table>
+						<tr>
+							<th>商品名</th>
+							<th>色</th>
+							<th>メーカー</th>
+							<th>単価</th>
+							<th>数量</th>
+						</tr>
+						{%for detail in line.detail%}
+						<tr>
+							<td>{{detail.name}}</td>
+							<td>{{detail.color}}</td>
+							<td>{{detail.manufacturer}}</td>
+							<td>{{detail.price}}円</td>
+							<td>{{detail.amount}}個</td>
+						</tr>
+						{% endfor %}
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th>配送先</th>
+				<td>{{line.destination}}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+</html>

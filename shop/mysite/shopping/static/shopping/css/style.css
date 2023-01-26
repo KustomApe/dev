@@ -1,0 +1,41 @@
+table {
+	border: 1px #7f7f7f solid;
+	border-collapse: collapse;
+}
+
+th {
+	background-color: #cfcfff;
+	text-align: center;
+	border: 1px #7f7f7f solid;
+}
+
+td {
+	background-color: #ffffff;
+	text-align: center;
+	border: 1px #7f7f7f solid;
+}
+
+.noborder {
+	border: 0px #000000 hidden;
+}
+
+sup {
+	color: red;
+}
+
+input.text {
+	width: 300px;
+	ime-mode: auto;
+}
+
+input.id {
+	float: left;
+	width: 200px;
+	ime-mode: disabled;
+}
+
+input.password {
+	float: left;
+	width: 200px;
+	ime-mode: disabled;
+}

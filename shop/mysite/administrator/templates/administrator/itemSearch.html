@@ -1,0 +1,47 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>商品の検索結果</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<br />
+		<table>
+			<tr>
+				<th>商品名</th>
+				<th>商品カテゴリ</th>
+				<th>商品の色</th>
+				<th>メーカー名</th>
+				<th>価格</th>
+				<th>在庫数</th>
+				<th></th>
+			</tr>
+			{% for item in item_list %}
+			<tr>
+				<td><a href="{% url "administrator:item_detail" item.item_id %}">{{ item.name }}</a></td>
+				<td>{{ item.category }}</td>
+				<td>{{ item.color }}</td>
+				<td>{{ item.manufacturer }}</td>
+				<td>{{ item.price }}円</td>
+				<td>{{ item.stock }}</td>
+				<td><a href="{% url "administrator:item_update" item.item_id %}">変更</a> <a href="{% url "administrator:item_delete" item.item_id %}">削除</a></td>
+			</tr>
+			{% endfor %}
+		</table>
+		<br />
+		<!-- 前へ の部分 -->
+		{% if page_obj.has_previous %}
+		<a href="?category={{ category }}&keyword={{ keyword }}&page={{ page_obj.previous_page_number }}">前へ</a>
+		{% endif %}
+		<!-- 1/3 の部分 -->
+		{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}
+		<!-- 次へ の部分 -->
+		{% if page_obj.has_next %}
+		<a href="?category={{ category }}&keyword={{ keyword }}&page={{ page_obj.next_page_number }}">次へ</a>
+		{% endif %}
+		<br />
+		<a href="{% url "administrator:item_add" %}">商品の新規登録</a>へ<br />
+		<a href='{% url "administrator:index" %}'>管理者メインページ</a>へ<br />
+	</body>
+</html>

@@ -1,0 +1,9 @@
+<form method="post">
+    {% csrf_token %}
+    以下の注文を削除しますか？
+    {% if object %}
+    <li>{{ object.user_id }} &nbsp &nbsp {{ object.booked_date }} &nbsp &nbsp{{ object.destination }}
+    </li>&nbsp
+    {% endif %}
+    <input type="submit" value="削除" />
+</form>

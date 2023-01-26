@@ -1,0 +1,64 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>ショッピングカート</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>ショッピングカート内の商品一覧</h3>
+		<br />
+		<table>
+			<tr>
+				<th>cart番号</th>
+				<th>商品名</th>
+				<th>商品の色</th>
+				<th>メーカー名</th>
+				<th>単価</th>
+				<th>数量</th>
+				<th>数量変更</th>
+				<th></th>
+			</tr>
+			{%for line in form%}
+			<tr>
+				<td>{{line.id}}</td>
+				<td>{{line.name}}</td>
+				<td>{{line.color}}</td>
+				<td>{{line.manufacturer}}</td>
+				<td>{{line.price}}円</td>
+				<td>{{line.amount}}個</td>
+				<td>
+				<form action='/shopping/amountInCart/'{{line.amount}} method='POST'>
+					{% csrf_token %}
+					<select name='amount'>
+						{% with ''|center:line.stock as range %}
+							{% for _ in range %}
+								<option value=' {{ forloop.counter }}'> {{ forloop.counter }}</option>
+							{% endfor %}
+						{% endwith %}
+						{% comment %} {% for _ in ''|center:line.stock %}
+							<option value=' {{ forloop.counter }}'> {{ forloop.counter }}</option>
+						{% endfor %} {% endcomment %}
+					</select>
+					<input type='hidden' name='id' value='{{line.id}}'/>
+					<input type='submit' value='数量変更' />
+				</form>
+				</td>
+				<td><a href='/shopping/removeFromCart/{{line.id}}/'>削除</a></td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% if total_price %}
+		合計 {{ total_price }} 円<br />
+		<form action='/shopping/purchase/' method='POST'>
+			{% csrf_token %}
+			<input type='submit' value='購入する' />
+		</form>
+		<br />
+		{% endif %}
+		{% if message %}
+		{{ message }}<br />
+		{% endif %}
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+</html>

@@ -1,0 +1,55 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>商品詳細</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>商品の詳細表示</h3>
+		<br />
+		<table>
+			{%for line in form%}
+			<tr>
+				<th>商品名</th>
+				<td>{{line.name}}</td>
+			</tr>
+			<tr>
+				<th>商品の色</th>
+				<td>{{line.color}}</td>
+			</tr>
+			<tr>
+				<th>メーカー名</th>
+				<td>{{line.manufacturer}}</td>
+			</tr>
+			<tr>
+				<th>価格</th>
+				<td>{{line.price}}円</td>
+			</tr>
+			<tr>
+				<th>在庫数</th>
+				<td>{{line.stock}}個</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<form action='/shopping/addToCart/' method='POST'>
+			{% csrf_token %}
+			数量
+			{%for line in form%}
+			{% if line.stock >= 1 %}
+			<select name='amount'>
+				{% with ' '|center:line.stock as range %}
+				{% for _ in range %}
+				<option value=' {{ forloop.counter }}'> {{ forloop.counter }}</option>
+				{% endfor %}
+				{% endwith %}
+			</select><br />
+			<input type='hidden' name='itemId' value='{{line.item_id}}' />
+			<input type='submit' value='ショッピングカートに入れる' /><br />
+			{% endif %}
+			{% endfor %}
+			※ログインしていない状態では、ボタンのクリック後、<a href='/account/login/'>ログイン画面</a>に転送される。<br />
+		</form>
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+</html>

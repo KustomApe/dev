@@ -1,0 +1,41 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>会員情報</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>会員情報</h3>
+		<br />
+		<form action='/account/updateUser/' method='POST'>
+			{% csrf_token %}
+			<table>
+				{{ register_form }}
+				<tr>
+					<td colspan='2'><input type='submit' value='変更' /></td>
+				</tr>
+			</table>
+			{% if register_form.captcha.errors %}
+			<div>{{ register_form.captcha.errors }}</div>
+			{% elif message %}
+			<div>{{ message }}</div>
+			{% endif %}
+		</form>
+		<a href='/account/withdraw/'>退会する</a><br /><br />
+		<a href='/shopping/purchaseHistory/'>購入履歴</a>へ<br />
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+	<script>
+		initial = '{{ initial }}'
+		if(initial === 'True'){
+			id = '{{ id }}'
+			name = '{{ name }}'
+			address = '{{ address }}'
+			document.getElementById('id_id').value= id;
+			document.getElementById('id_name').value= name;
+			document.getElementById('id_address').value= address;
+		}
+		document.getElementById('id_id').readOnly= true;
+	</script>
+</html>

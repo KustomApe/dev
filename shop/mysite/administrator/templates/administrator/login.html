@@ -1,0 +1,25 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>管理者ログイン</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>ログインしてください。</h3>
+		<br />
+		<form action='/administrator/login/' method='POST'>
+			{% csrf_token %}
+			<table>
+				{{ login_form }}
+				<tr>
+					<td colspan='2'><input type='submit' value='ログイン' /></td>
+				</tr>
+			</table>
+			{% if message %}
+			<div>{{ message }}</div>
+			{% endif %}
+		</form>
+		<a href='/administrator/registerAdmin/'>管理者登録</a><br />
+	</body>
+</html>

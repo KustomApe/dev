@@ -1,0 +1,48 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>会員情報の更新</title>
+		<link rel='stylesheet' type='text/css' href='{% static "account/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>以下の会員情報で更新しますか？</h3>
+		<br />
+		<form action='/account/updateUserCommit/' method='POST'>
+			{% csrf_token %}
+			<table>
+				<tr>
+					<th>{{ register_form.id.label_tag }}</th>
+					<td>{{ register_form.id}}</td>
+				</tr>
+				<tr>
+					<th>{{ register_form.password1.label_tag }}</th>
+					<td>{{ register_form.password1}}</td>
+				</tr>
+				<tr id = 'pw2'>
+					<th>{{ register_form.password2.label_tag }}</th>
+					<td>{{ register_form.password2}}</td>
+				</tr>
+				<tr>
+					<th>{{ register_form.name.label_tag }}</th>
+					<td>{{ register_form.name}}</td>
+				</tr>
+				<tr>
+					<th>{{ register_form.address.label_tag }}</th>
+					<td>{{ register_form.address}}</td>
+				</tr>
+				<tr>
+					<td colspan='2'><input type='submit' value='変更' /></td>
+				</tr>
+			</table>
+		</form>
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+	<script>
+		inputs = document.getElementsByTagName('input');
+		for (i = 0; i < inputs.length-1; i++) {
+			inputs[i].readOnly= true;
+		}
+		document.getElementById('pw2').style.display = 'none';
+	</script>
+</html>

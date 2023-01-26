@@ -1,0 +1,26 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>ショッピングカート内の商品を削除</title>
+		<link rel='stylesheet' type='text/css' href='{% static "shopping/css/style.css" %}' />
+	</head>
+	<body>
+		<h3>以下の商品をショッピングカートから削除してよろしいですか？</h3>
+		<br />
+		{%for line in form%}
+		{{line.name}}<br />
+		{{line.manufacturer}}<br />
+		{{line.price}}円<br />
+		{{line.amount}}個<br />
+		{% endfor %}
+		<form action='/shopping/removeFromCartCommit/' method='POST'>
+			{% csrf_token %}
+			{%for line in form%}
+			<input type='hidden' name='id' value='{{line.id}}' />
+			{% endfor %}
+			<input type='submit' value='削除する' /><br />
+		</form>
+		<a href='/'>商品検索</a>へ<br />
+	</body>
+</html>
