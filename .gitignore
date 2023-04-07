@@ -1,5 +1,6 @@
 /.vscode
 /__pycache__
 /lib/python3.6
+/chatgpt/key.txt
 
 # git rm -r --cached .
