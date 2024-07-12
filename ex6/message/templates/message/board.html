@@ -1,0 +1,37 @@
+{% load static %}
+<html>
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<title>MessageBoard</title>
+		<link rel='stylesheet' type='text/css' href='{% static "message/css/style.css" %}' />
+	</head>
+	<body>
+        <div class="content">
+			<h3>MessageBoard</h3>
+			<div class="form">
+			<form action="{% url'message:article_create'%}" method='POST'>
+				投稿者名：
+                <input type="text" name="name" /><br>
+				投稿内容：
+				<input type="textarea" name="content" rows="3" /><br>
+				パスワード：
+				<input type="password" name="password" /><br>
+				<input type="submit" value="記事投稿" />
+			</form>
+			</div>
+        </div>
+
+        <div class="articles">
+            {% for article in article_list %}
+                <div class="article">
+                    <div class="article_content">
+                        投稿ID：{{article.id}}<br>
+                        投稿者名：{{article.name}}<br>
+                        投稿内容：{{article.content}}<br>
+                        投稿日時：{{article.create_at}}<br>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+	</body>
+</html>
