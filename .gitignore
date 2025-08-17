@@ -4,3 +4,24 @@
 /chatgpt/key.txt
 
 # git rm -r --cached .
+
+# Ignore editor history and OS junk
+.history/
+.DS_Store
+
+# Python caches
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+
+# Virtual environments
+env/
+**/env/
+venv/
+**/venv/
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
