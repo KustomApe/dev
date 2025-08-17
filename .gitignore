@@ -25,3 +25,7 @@ venv/
 .env.*
 **/.env
 **/.env.*
+
+# Allow example env file templates
+!.env.example
+!**/.env.example
