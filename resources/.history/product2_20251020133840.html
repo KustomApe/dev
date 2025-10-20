@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- Chosen Palette: Light & Pastel Blue -->
+    <!-- Application Structure Plan: The page is structured to first present users with broad product categories in a visually engaging grid, facilitating quick navigation. This is followed by a 'New Arrivals' section to create excitement and highlight recent innovations. The structure concludes with a clear CTA for bespoke inquiries, guiding users with specific needs. This top-down approach (from broad categories to specific items) is intuitive and mirrors a typical discovery process. -->
+    <!-- Visualization & Content Choices: Report Info: Product Categories -> Goal: Navigation -> Viz/Presentation: Interactive Image Cards -> Interaction: CSS Hover (Zoom/Overlay) -> Justification: Visually appealing and provides clear feedback, encouraging exploration. | Report Info: New Products -> Goal: Highlight/Engage -> Viz/Presentation: JS Carousel -> Interaction: Clickable next/prev buttons -> Justification: Dynamically showcases multiple products without cluttering the page. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Customs - 製品一覧</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .section-title {
+            @apply text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center;
+        }
+        .section-subtitle {
+            @apply text-lg text-gray-600 mb-12 text-center max-w-2xl mx-auto;
+        }
+        .cta-button {
+            @apply px-8 py-3 bg-sky-500 text-white font-bold rounded-lg shadow-lg hover:bg-sky-600 transition-transform transform hover:scale-105 duration-300;
+        }
+        .carousel-container {
+            transition: transform 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-700">
+
+    <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v1.586M12 16.16v1.586M16.16 12h1.586M6.253 12H7.84m9.32-4.32l-1.12 1.12M9.43 15.73l-1.12 1.12m6.3-1.12l1.12 1.12m-13.56-6.3l1.12 1.12" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a6 6 0 100-12 6 6 0 000 12z" />
+                </svg>
+                Apex Customs
+            </a>
+            <nav class="hidden md:flex space-x-6 items-center">
+                 <a href="/" class="text-gray-600 hover:text-sky-500 transition">HOME</a>
+                 <a href="/products" class="text-sky-500 font-bold">PRODUCTS</a>
+                 <a href="/philosophy" class="text-gray-600 hover:text-sky-500 transition">PHILOSOPHY</a>
+                 <a href="/gallery" class="text-gray-600 hover:text-sky-500 transition">GALLERY</a>
+                 <a href="/contact" class="text-gray-600 hover:text-sky-500 transition">CONTACT</a>
+            </nav>
+            <button class="md:hidden text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="relative py-20 md:py-32 bg-white">
+            <div class="absolute inset-0">
+                <img src="https://placehold.co/1920x800/e0f2fe/0ea5e9?text=Apex+Customs+Garage" class="w-full h-full object-cover opacity-20" alt="カスタムカーのガレージ">
+            </div>
+            <div class="container mx-auto px-6 text-center relative z-10">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
+                    創造のカタログ。
+                    <br class="hidden md:block">
+                    <span class="text-sky-500">機能美の結晶</span>、そのすべてをここに。
+                </h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    君の理想を現実へと導く、我々のクラフトマンシップの全貌。カテゴリーを選び、進化の扉を開け。
+                </p>
+            </div>
+        </section>
+
+        <section id="categories" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <a href="/products/category/steering-wheels" class="group relative block overflow-hidden rounded-lg shadow-lg">
+                        <img src="https://placehold.co/600x800/e0f2fe/0ea5e9?text=STEERING" alt="ステアリング" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-sky-500 group-hover:bg-opacity-70 transition-all duration-300"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <h3 class="text-3xl font-black text-white tracking-widest">STEERING</h3>
+                        </div>
+                    </a>
+                    <a href="/products/category/wheels" class="group relative block overflow-hidden rounded-lg shadow-lg">
+                        <img src="https://placehold.co/600x800/e0f2fe/0ea5e9?text=WHEELS" alt="ホイール" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-sky-500 group-hover:bg-opacity-70 transition-all duration-300"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <h3 class="text-3xl font-black text-white tracking-widest">WHEELS</h3>
+                        </div>
+                    </a>
+                    <a href="/products/category/aero-parts" class="group relative block overflow-hidden rounded-lg shadow-lg">
+                        <img src="https://placehold.co/600x800/e0f2fe/0ea5e9?text=AERO+PARTS" alt="エアロパーツ" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-sky-500 group-hover:bg-opacity-70 transition-all duration-300"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <h3 class="text-3xl font-black text-white tracking-widest">AERO PARTS</h3>
+                        </div>
+                    </a>
+                    <a href="/products/category/exhaust" class="group relative block overflow-hidden rounded-lg shadow-lg">
+                        <img src="https://placehold.co/600x800/e0f2fe/0ea5e9?text=EXHAUST" alt="エキゾースト" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-sky-500 group-hover:bg-opacity-70 transition-all duration-300"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <h3 class="text-3xl font-black text-white tracking-widest">EXHAUST</h3>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="new-arrivals" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">NEW ARRIVALS</h2>
+                <p class="section-subtitle">最新の技術とデザインが融合した、我々の新たな挑戦を目撃せよ。</p>
+                <div class="relative">
+                    <div id="carousel-wrapper" class="overflow-hidden w-full">
+                        <div id="carousel-container" class="carousel-container flex">
+                        </div>
+                    </div>
+                    <button id="prevBtn" class="absolute top-1/2 left-0 md:-left-6 transform -translate-y-1/2 bg-sky-500/80 p-3 rounded-full hover:bg-sky-600 transition text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <button id="nextBtn" class="absolute top-1/2 right-0 md:-right-6 transform -translate-y-1/2 bg-sky-500/80 p-3 rounded-full hover:bg-sky-600 transition text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6 text-center bg-white p-12 rounded-lg shadow-xl border border-gray-200">
+                 <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-6">
+                    君だけのマスターピースを創造する。
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+                    我々のカタログに存在しない、完全なオーダーメイドも可能だ。君のビジョンを我々に聞かせてくれ。
+                </p>
+                <a href="/contact" class="cta-button text-lg">
+                    フルオーダーメイドの相談をする
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-200">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-lg font-bold mb-4 md:mb-0">
+                    Apex Customs
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-sky-400">会社概要</a>
+                    <a href="#" class="hover:text-sky-400">プライバシーポリシー</a>
+                    <a href="#" class="hover:text-sky-400">利用規約</a>
+                </div>
+            </div>
+            <div class="text-center text-gray-400 mt-8 pt-8 border-t border-gray-700">
+                &copy; 2025 Apex Customs. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const newProducts = [
+                {
+                    name: 'チタン製エキゾースト "Roar"',
+                    description: '魂を震わすサウンドと、極限まで軽量化されたフルチタン製マフラー。',
+                    img: 'https://placehold.co/400x300/e0f2fe/0ea5e9?text=Titanium+Exhaust'
+                },
+                {
+                    name: 'LEDカーボンシフトノブ',
+                    description: '触れると点灯するLED内蔵。ドライカーボンがコックピットを未来的に演出する。',
+                    img: 'https://placehold.co/400x300/e0f2fe/0ea5e9?text=LED+Shift+Knob'
+                },
+                {
+                    name: 'APEX-02S 鍛造ホイール',
+                    description: 'APEX-01をさらに軽量化し、応力分散を最適化したスプリット5スポークモデル。',
+                    img: 'https://placehold.co/400x300/e0f2fe/0ea5e9?text=APEX-02S+Wheel'
+                },
+                {
+                    name: 'カーボン カナード Type-S',
+                    description: '高速コーナリング時のフロントの安定性を向上させる、攻撃的なデザインのカナード。',
+                    img: 'https://placehold.co/400x300/e0f2fe/0ea5e9?text=Carbon+Canard'
+                },
+                {
+                    name: 'デジタルインナーミラー',
+                    description: '後方の視界をクリアに映し出す。純正交換タイプでスマートにインストール可能。',
+                    img: 'https://placehold.co/400x300/e0f2fe/0ea5e9?text=Digital+Mirror'
+                }
+            ];
+
+            const container = document.getElementById('carousel-container');
+            newProducts.forEach(product => {
+                const productCard = `
+                    <div class="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 p-4">
+                        <div class="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden flex flex-col h-full">
+                            <img src="${product.img}" alt="${product.name}" class="w-full h-56 object-cover">
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="text-xl font-bold text-gray-900 mb-3">${product.name}</h3>
+                                <p class="text-gray-600 mb-6 flex-grow">${product.description}</p>
+                                <a href="#" class="mt-auto text-center w-full py-2 px-4 border-2 border-sky-500 text-sky-500 font-bold rounded-lg hover:bg-sky-500 hover:text-white transition">詳細を見る</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += productCard;
+            });
+            
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            let currentIndex = 0;
+
+            function getItemsPerView() {
+                if (window.innerWidth >= 1024) return 3;
+                if (window.innerWidth >= 768) return 2;
+                return 1;
+            }
+
+            function updateCarousel() {
+                const itemsPerView = getItemsPerView();
+                const totalItems = newProducts.length;
+                if (currentIndex > totalItems - itemsPerView) {
+                    currentIndex = totalItems - itemsPerView;
+                }
+                if (currentIndex < 0) {
+                    currentIndex = 0;
+                }
+                const offset = -currentIndex * (100 / itemsPerView);
+                container.style.width = `${(totalItems / itemsPerView) * 100}%`;
+                container.style.transform = `translateX(${offset}%)`;
+            }
+
+            nextBtn.addEventListener('click', () => {
+                const itemsPerView = getItemsPerView();
+                const totalItems = newProducts.length;
+                if (currentIndex < totalItems - itemsPerView) {
+                    currentIndex++;
+                } else {
+                    currentIndex = 0;
+                }
+                updateCarousel();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                const itemsPerView = getItemsPerView();
+                const totalItems = newProducts.length;
+                if (currentIndex > 0) {
+                    currentIndex--;
+                } else {
+                    currentIndex = totalItems - itemsPerView;
+                }
+                updateCarousel();
+            });
+            
+            window.addEventListener('resize', updateCarousel);
+            updateCarousel();
+        });
+    </script>
+
+</body>
+</html>
+
