@@ -79,7 +79,7 @@ Applies an animated slow pan and zoom to the clip at the playhead. Ideal for sti
 
 | Parameter | Default | Range | Description |
 |-----------|---------|-------|-------------|
-| Direction | Left | Left / Right / Up / Down / No Pan | Pan direction over clip duration |
+| Direction | Left | Left / Right / Up / Down / No Pan (zoom only) | Pan direction over clip duration |
 | Zoom Amount | 1.2 | 1.05 – 1.5 | How much to zoom in (scale factor at clip end) |
 
 **Removing the effect:** Right-click the clip → **Delete Fusion Composition**.
@@ -125,10 +125,10 @@ Reads a `.srt` subtitle file and creates Text+ title clips on a new video track 
 
 **Parameters**
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| SRT File | — | Path to the `.srt` subtitle file |
-| Font Size | 60 | Text size for all subtitle clips |
+| Parameter | Default | Range | Description |
+|-----------|---------|-------|-------------|
+| SRT File | — | — | Path to the `.srt` subtitle file |
+| Font Size | 60 | 20 – 120 | Text size for all subtitle clips |
 
 **Notes**
 - If a subtitle clip cannot be inserted automatically, the entry is logged to the Fusion Console (timecode and text) for manual creation.
