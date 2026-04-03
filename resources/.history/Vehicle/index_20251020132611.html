@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Customs - 究極のカスタムパーツ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(120deg, #e53e3e 0%, #1a202c 100%);
+        }
+        .section-title {
+            @apply text-3xl md:text-4xl font-bold text-white mb-4 text-center;
+        }
+        .section-subtitle {
+            @apply text-lg text-gray-400 mb-12 text-center max-w-2xl mx-auto;
+        }
+        .cta-button {
+            @apply px-8 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700 transition-transform transform hover:scale-105 duration-300;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <!-- ヘッダー -->
+    <header class="bg-gray-900/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v1.586M12 16.16v1.586M16.16 12h1.586M6.253 12H7.84m9.32-4.32l-1.12 1.12M9.43 15.73l-1.12 1.12m6.3-1.12l1.12 1.12m-13.56-6.3l1.12 1.12" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18a6 6 0 100-12 6 6 0 000 12z" />
+                </svg>
+                Apex Customs
+            </div>
+            <a href="#products" class="cta-button text-sm">パーツを見る</a>
+        </div>
+    </header>
+
+    <!-- ヒーローセクション -->
+    <main>
+        <section class="py-20 md:py-32 bg-gray-900">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
+                    ただの移動手段じゃない。<br class="hidden md:block">
+                    <span class="text-red-500">君だけのスタイル</span>を、その手に。
+                </h1>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto mb-10">
+                    Apex Customsは、最高の素材と精密な技術で、あなたの愛車を唯一無二の存在へと昇華させるカスタムパーツを提供します。
+                </p>
+                <a href="#features" class="cta-button text-lg">こだわりを見る</a>
+                <div class="mt-16">
+                    <img src="https://placehold.co/1000x500/1a202c/e53e3e?text=カスタムカーのイメージ" alt="カスタムカーのイメージ" class="rounded-lg shadow-2xl mx-auto">
+                </div>
+            </div>
+        </section>
+
+        <!-- 特徴セクション -->
+        <section id="features" class="py-20 bg-gray-800">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">なぜApex Customsが選ばれるのか？</h2>
+                <p class="section-subtitle">
+                    我々は妥協しない。パフォーマンス、デザイン、クオリティ。その全てを、君の愛車のために。
+                </p>
+                <div class="grid md:grid-cols-3 gap-12 text-center">
+                    <!-- 特徴 1 -->
+                    <div class="bg-gray-900 p-8 rounded-xl shadow-lg">
+                        <div class="bg-red-900/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 6v10h12V12l3-6H3zM6 6V4a2 2 0 012-2h8a2 2 0 012 2v2" /></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">精密なエンジニアリング</h3>
+                        <p class="text-gray-400">ミクロン単位での設計と製造。完璧なフィットメントが、最高のパフォーマンスを引き出す。</p>
+                    </div>
+                    <!-- 特徴 2 -->
+                    <div class="bg-gray-900 p-8 rounded-xl shadow-lg">
+                         <div class="bg-red-900/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-12v4m-2-2h4m5 6v4m-2-2h4M12 3v18" /></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">最高品質の素材</h3>
+                        <p class="text-gray-400">航空宇宙グレードの素材から鍛造アルミニウムまで。耐久性と美しさを両立。</p>
+                    </div>
+                    <!-- 特徴 3 -->
+                    <div class="bg-gray-900 p-8 rounded-xl shadow-lg">
+                         <div class="bg-red-900/50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">完全なカスタマイズ</h3>
+                        <p class="text-gray-400">君のビジョンを形にする。カラー、フィニッシュ、デザイン。世界に一つだけのパーツを創り出す。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- お客様の声セクション -->
+        <section class="py-20 bg-gray-900">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">カスタマーの声</h2>
+                <p class="section-subtitle">
+                    我々のパーツが、彼らのマシンをどう変えたか。
+                </p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-gray-800 p-8 rounded-lg">
+                        <p class="text-gray-300 mb-6">"驚くほどの精度とクオリティ。取り付けた瞬間、車のオーラが変わった。コーナーを攻めるのが今まで以上に楽しくなったよ。"</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/60x60/4a5568/ffffff?text=K" alt="利用者の写真" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-bold text-white">KENJI</p>
+                                <p class="text-sm text-gray-400">週末レーサー / JDMファン</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-lg">
+                        <p class="text-gray-300 mb-6">"デザインの相談にも丁寧に乗ってくれて、想像以上の仕上がりに大満足です。イベントで注目を浴びること間違いなし！"</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/60x60/4a5568/ffffff?text=Y" alt="利用者の写真" class="w-12 h-12 rounded-full mr-4">
+                            <div>
+                                <p class="font-bold text-white">YUKI</p>
+                                <p class="text-sm text-gray-400">カスタムカービルダー</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 製品セクション -->
+        <section id="products" class="py-20 bg-gray-800">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">注目のプロダクト</h2>
+                <p class="section-subtitle">
+                    我々のクラフトマンシップが光る、人気のカスタムパーツラインナップ。
+                </p>
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- 製品 1 -->
+                    <div class="bg-gray-900 rounded-xl shadow-lg overflow-hidden flex flex-col">
+                        <img src="https://placehold.co/400x300/1a202c/e53e3e?text=カーボンステアリング" alt="鍛造カーボンステアリング" class="w-full h-56 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-2xl font-bold text-white mb-3">鍛造カーボンステアリング</h3>
+                            <p class="text-gray-400 mb-6 flex-grow">手に馴染む完璧なグリップと、圧倒的な存在感を放つ鍛造カーボンのデザイン。</p>
+                            <a href="#" class="mt-auto text-center w-full py-2 px-4 border-2 border-red-600 text-red-500 font-bold rounded-lg hover:bg-red-600 hover:text-white transition">詳細を見る</a>
+                        </div>
+                    </div>
+                    <!-- 製品 2 -->
+                     <div class="bg-gray-900 rounded-xl shadow-lg overflow-hidden flex flex-col">
+                        <img src="https://placehold.co/400x300/1a202c/e53e3e?text=カスタムホイール" alt="APEX-01 カスタムホイール" class="w-full h-56 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-2xl font-bold text-white mb-3">APEX-01 カスタムホイール</h3>
+                            <p class="text-gray-400 mb-6 flex-grow">軽量かつ高剛性。ミリ単位でオフセットを指定できる完全オーダーメイドホイール。</p>
+                            <a href="#" class="mt-auto text-center w-full py-2 px-4 border-2 border-red-600 text-red-500 font-bold rounded-lg hover:bg-red-600 hover:text-white transition">詳細を見る</a>
+                        </div>
+                    </div>
+                    <!-- 製品 3 -->
+                     <div class="bg-gray-900 rounded-xl shadow-lg overflow-hidden flex flex-col">
+                        <img src="https://placehold.co/400x300/1a202c/e53e3e?text=エアロパーツ" alt="フルエアロキット “Blade”" class="w-full h-56 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-2xl font-bold text-white mb-3">フルエアロキット “Blade”</h3>
+                            <p class="text-gray-400 mb-6 flex-grow">風を味方につける流麗なデザイン。ダウンフォースを最適化し、高速走行を安定させる。</p>
+                            <a href="#" class="mt-auto text-center w-full py-2 px-4 border-2 border-red-600 text-red-500 font-bold rounded-lg hover:bg-red-600 hover:text-white transition">詳細を見る</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTAセクション -->
+        <section class="py-20 md:py-32 gradient-bg">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-6">
+                    眠っているポテンシャルを、解き放て。
+                </h2>
+                <p class="text-xl text-red-100 max-w-3xl mx-auto mb-10">
+                    今すぐパーツをチェックして、君だけのカスタムストーリーを始めよう。インスピレーションが、ここにある。
+                </p>
+                <a href="#products" class="px-10 py-4 bg-white text-red-600 font-bold rounded-lg shadow-xl hover:bg-gray-200 transition-transform transform hover:scale-105 duration-300 text-lg">
+                    すべてのパーツを見る
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-black text-white">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-lg font-bold mb-4 md:mb-0">
+                    Apex Customs
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="hover:text-red-500">会社概要</a>
+                    <a href="#" class="hover:text-red-500">プライバシーポリシー</a>
+                    <a href="#" class="hover:text-red-500">利用規約</a>
+                </div>
+            </div>
+            <div class="text-center text-gray-500 mt-8 pt-8 border-t border-gray-800">
+                &copy; 2025 Apex Customs. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+
