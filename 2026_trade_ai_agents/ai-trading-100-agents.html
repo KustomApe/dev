@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Trading · 100 Agents · ETHUSDT Live</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#11161f; --panel-2:#161c27; --border:#1f2733;
+    --text:#d6def0; --muted:#7a8599;
+    --green:#22c55e; --red:#ef4444; --amber:#fbbf24; --blue:#3b82f6; --accent:#06b6d4; --purple:#a855f7;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(6,182,212,0.05), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(168,85,247,0.05), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    overflow-x:hidden;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 18px; border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, #0d121b, #0a0e14);
+    position:sticky; top:0; z-index:10;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .logo{
+    width:30px; height:30px; border-radius:7px;
+    background:linear-gradient(135deg,var(--accent),var(--purple));
+    display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:11px;
+    box-shadow: 0 0 16px rgba(6,182,212,0.35);
+  }
+  .brand h1{margin:0; font-size:13px; letter-spacing:0.05em;}
+  .brand h1 .lbl{color:var(--muted); font-weight:400;}
+  .ticker{display:flex; gap:18px; align-items:center; font-size:12px; flex-wrap:wrap;}
+  .ticker .label{color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.12em;}
+  .ticker .v{font-weight:600; font-size:13px;}
+  .pos{color:var(--green) !important;} .neg{color:var(--red) !important;}
+  .conn{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#0c1219; padding:5px 10px; border:1px solid var(--border); border-radius:14px;
+    font-size:11px;
+  }
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--amber);}
+  .dot.live{background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.6s infinite;}
+  .dot.dead{background:var(--red);}
+  @keyframes pulse{0%{opacity:1;} 50%{opacity:0.45;} 100%{opacity:1;}}
+
+  main{
+    display:grid;
+    grid-template-columns: 300px 1fr 340px;
+    gap: 10px;
+    padding: 10px;
+    min-height: calc(100vh - 92px);
+  }
+  .col{display:flex; flex-direction:column; gap:10px; min-height:0;}
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .panel h2{
+    margin:0 0 10px 0;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    display:flex; justify-content:space-between; align-items:center;
+    font-weight:600;
+  }
+  .metric-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .metric{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:8px 10px;
+  }
+  .metric .k{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em;}
+  .metric .v{font-size:15px; font-weight:600; margin-top:3px;}
+
+  .consensus{
+    text-align:center; padding:16px 8px; border-radius:8px;
+    background:linear-gradient(180deg,#161c27,#11161f);
+    border:1px solid var(--border);
+  }
+  .consensus .signal{font-size:30px; font-weight:700; letter-spacing:.1em;}
+  .consensus .desc{font-size:11px; color:var(--muted); margin-top:6px;}
+  .bars{display:flex; gap:4px; margin-top:14px;}
+  .bar{flex:1; border-radius:4px; background:#0c1219; overflow:hidden; height:8px; position:relative;}
+  .bar > span{position:absolute; left:0; top:0; bottom:0; transition: width .4s ease;}
+  .legend{display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-top:8px;}
+
+  .agents{
+    display:grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    overflow:auto;
+    flex:1;
+    min-height: 320px;
+  }
+  .agent{
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background:#1a212e;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    font-size:8px;
+    cursor:pointer;
+    position:relative;
+    border:1px solid transparent;
+    transition: transform .12s, border-color .12s;
+  }
+  .agent:hover{transform:scale(1.25); z-index:3; border-color:var(--accent);}
+  .agent.long{background:#0f2818; color:#34d399;}
+  .agent.short{background:#2a0f0f; color:#fca5a5;}
+  .agent.flat{background:#1a212e; color:#7a8599;}
+  .agent .id{font-size:8px; font-weight:700;}
+  .agent .pnl{font-size:8px; margin-top:1px; opacity:0.9;}
+
+  .chart-wrap{flex:1; position:relative; min-height:160px;}
+  canvas{max-width:100%;}
+
+  .news-list{overflow:auto; flex:1; min-height: 200px;}
+  .news-item{padding:9px 0; border-bottom:1px solid var(--border);}
+  .news-item:last-child{border-bottom:none;}
+  .news-title{font-size:11px; line-height:1.45; color:var(--text);}
+  .news-meta{display:flex; justify-content:space-between; margin-top:5px; font-size:9px; color:var(--muted);}
+  .sent{padding:2px 7px; border-radius:8px; font-size:9px; font-weight:600; letter-spacing:.06em;}
+  .sent.pos{background:#0f2818; color:var(--green);}
+  .sent.neg{background:#2a0f0f; color:var(--red);}
+  .sent.neu{background:#1f1f24; color:var(--muted);}
+
+  .tt{
+    position:fixed;
+    background:#1a212e; border:1px solid var(--border); border-radius:6px;
+    padding:8px 10px; font-size:11px; pointer-events:none; z-index:99; display:none;
+    box-shadow:0 4px 16px rgba(0,0,0,.6);
+    min-width:180px;
+  }
+
+  footer{
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    text-align:center;
+    line-height: 1.5;
+  }
+  footer b{color:#cdd6f4; font-weight:600;}
+
+  ::-webkit-scrollbar{width:6px; height:6px;}
+  ::-webkit-scrollbar-thumb{background:#2a3441; border-radius:3px;}
+  ::-webkit-scrollbar-thumb:hover{background:#3a4555;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  @media (max-width: 1100px){
+    main{grid-template-columns: 1fr;}
+    .agents{grid-template-columns: repeat(12, 1fr);}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">AI</div>
+    <h1>AI TRADING · 100 AGENTS · <span style="color:var(--accent);">ETHUSDT</span> <span class="lbl">/ LSTM + LLM SIGNALS / SCALPING</span></h1>
+  </div>
+  <div class="ticker">
+    <div><div class="label">Last</div><div class="v" id="lastPrice">—</div></div>
+    <div><div class="label">24h Chg</div><div class="v" id="chg24h">—</div></div>
+    <div><div class="label">24h High</div><div class="v" id="high24h">—</div></div>
+    <div><div class="label">24h Low</div><div class="v" id="low24h">—</div></div>
+    <div><div class="label">24h Vol</div><div class="v" id="vol24h">—</div></div>
+    <span class="conn"><span class="dot" id="connDot"></span><span id="connText">Connecting…</span></span>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT COLUMN -->
+  <div class="col">
+    <div class="panel">
+      <h2>Consensus Signal</h2>
+      <div class="consensus">
+        <div class="signal" id="consensusSignal">—</div>
+        <div class="desc" id="consensusDesc">Awaiting market data…</div>
+        <div class="bars">
+          <div class="bar"><span id="bLong"  style="background:var(--green);"></span></div>
+          <div class="bar"><span id="bFlat"  style="background:var(--muted);"></span></div>
+          <div class="bar"><span id="bShort" style="background:var(--red);"></span></div>
+        </div>
+        <div class="legend">
+          <span style="color:var(--green);">LONG <b id="lLong">0</b></span>
+          <span>FLAT <b id="lFlat">0</b></span>
+          <span style="color:var(--red);">SHORT <b id="lShort">0</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Aggregate P&amp;L · Simulated</h2>
+      <div class="metric-grid">
+        <div class="metric"><div class="k">Total P&amp;L</div><div class="v" id="totalPnl">$0.00</div></div>
+        <div class="metric"><div class="k">Best Agent</div><div class="v" id="bestAgent">—</div></div>
+        <div class="metric"><div class="k">Win Rate</div><div class="v" id="winRate">—</div></div>
+        <div class="metric"><div class="k">Trades</div><div class="v" id="totalTrades">0</div></div>
+        <div class="metric"><div class="k">LSTM Score</div><div class="v" id="lstmScore">—</div></div>
+        <div class="metric"><div class="k">News Sentiment</div><div class="v" id="newsSent">—</div></div>
+      </div>
+    </div>
+
+    <div class="panel" style="flex:1;">
+      <h2>Live Crypto News <span style="color:var(--muted); font-weight:400;" id="newsCount"></span></h2>
+      <div class="news-list" id="newsList">
+        <div style="color:var(--muted); font-size:11px; padding:8px 0;">Fetching headlines…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="col">
+    <div class="panel" style="flex:1.4;">
+      <h2>ETHUSDT · Live Price + EMA(9/21)
+        <span style="color:var(--muted); font-weight:400;">Binance Spot · 1s ticks</span>
+      </h2>
+      <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+    </div>
+    <div class="panel" style="flex:1;">
+      <h2>Aggregate Signal Score · -1 SHORT → +1 LONG
+        <span style="color:var(--muted); font-weight:400;">100-agent consensus</span>
+      </h2>
+      <div class="chart-wrap"><canvas id="signalChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col">
+    <div class="panel" style="flex:1;">
+      <h2>100 Agents · LSTM + LLM
+        <span style="color:var(--muted); font-weight:400;">scalping</span>
+      </h2>
+      <div class="agents" id="agentGrid"></div>
+    </div>
+    <div class="panel">
+      <h2>Top 5 Performers</h2>
+      <div id="leaderboard" style="font-size:11px; line-height:1.8;"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <b>Simulation only — no real trades placed.</b> Live ETHUSDT prices via Binance public WebSocket.
+  Each of the 100 agents runs a randomized pseudo-LSTM (EMA cross · RSI · momentum · volatility) blended with an LLM-style headline sentiment score.
+  Scalping logic: enter at signal threshold, exit on opposite signal, +0.40% TP, -0.25% SL, 0.04% fee/side.
+</footer>
+
+<div class="tt" id="tt"></div>
+
+<script>
+// ============ Config ============
+const AGENT_COUNT     = 100;
+const FEE_RATE        = 0.0004;   // 0.04% per side
+const STOP_PCT        = 0.0025;   // 0.25% stop loss
+const TP_PCT          = 0.0040;   // 0.40% take profit (scalping)
+const POSITION_SIZE   = 100;      // $100 notional per agent
+const PRICE_BUFFER    = 240;      // ~4 minutes of trade ticks
+
+// ============ State ============
+const state = {
+  lastPrice: null,
+  prevPrice: null,
+  prices: [],
+  ema9: null, ema21: null, ema50: null,
+  sentiment: 0,
+  consensusSeries: [],
+  agents: [],
+  totalTrades: 0,
+  wins: 0,
+  losses: 0,
+  features: null,
+  aggregate: null,
+};
+
+// ============ Helpers ============
+function rnd(min, max){ return Math.random()*(max-min)+min; }
+function rndN(){ return (Math.random()+Math.random()+Math.random()-1.5)*1.5; }
+function ema(prev, value, period){
+  const k = 2/(period+1);
+  return prev==null ? value : value*k + prev*(1-k);
+}
+function escapeHtml(s){return s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function humanAgo(ts){
+  const s = Math.max(0, Math.floor((Date.now()-ts)/1000));
+  if(s<60) return s+'s ago';
+  const m = Math.floor(s/60); if(m<60) return m+'m ago';
+  const h = Math.floor(m/60); if(h<24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+
+// ============ Agents (pseudo-LSTM) ============
+function initAgents(){
+  state.agents = [];
+  for(let i=0;i<AGENT_COUNT;i++){
+    state.agents.push({
+      id: i+1,
+      w: {
+        emaCross: rndN(),
+        rsi:      rndN(),
+        mom1:     rndN(),
+        mom5:     rndN(),
+        vol:      rndN()*0.6,
+        sent:     rndN()*0.9,
+        bias:     rnd(-0.2,0.2),
+      },
+      thresholdLong:   rnd(0.18, 0.45),
+      thresholdShort: -rnd(0.18, 0.45),
+      position: 0, entry: null,
+      pnl: 0, trades: 0, wins: 0,
+      lastSignal: 0,
+    });
+  }
+}
+
+function agentScore(a, f){
+  const x =
+    a.w.emaCross * f.emaCross +
+    a.w.rsi      * f.rsi      +
+    a.w.mom1     * f.mom1     +
+    a.w.mom5     * f.mom5     +
+    a.w.vol      * f.vol      +
+    a.w.sent     * f.sent     +
+    a.w.bias;
+  return Math.tanh(x);   // squash to (-1, 1)
+}
+
+function stepAgents(){
+  if(state.lastPrice==null || !state.features) return;
+  const f = state.features, px = state.lastPrice;
+  let longC=0, shortC=0, flatC=0, sum=0;
+
+  for(const a of state.agents){
+    const s = agentScore(a, f);
+    a.lastSignal = s;
+    sum += s;
+
+    if(a.position === 0){
+      if(s >  a.thresholdLong) { a.position =  1; a.entry = px; }
+      else if(s < a.thresholdShort){ a.position = -1; a.entry = px; }
+    } else {
+      const move = (px - a.entry) / a.entry * a.position; // positive when winning
+      let exit=false;
+      if(move >=  TP_PCT) exit = true;
+      else if(move <= -STOP_PCT) exit = true;
+      else if(a.position===1  && s < a.thresholdShort) exit = true;
+      else if(a.position===-1 && s > a.thresholdLong)  exit = true;
+      if(exit){
+        const gross = move * POSITION_SIZE;
+        const fees  = 2 * FEE_RATE * POSITION_SIZE;
+        const net = gross - fees;
+        a.pnl += net;
+        a.trades++; state.totalTrades++;
+        if(net > 0){ a.wins++; state.wins++; } else { state.losses++; }
+        a.position = 0; a.entry = null;
+      }
+    }
+
+    if(a.position===1) longC++; else if(a.position===-1) shortC++; else flatC++;
+  }
+
+  state.aggregate = { longC, shortC, flatC, mean: sum/AGENT_COUNT };
+  state.consensusSeries.push({ t: Date.now(), v: state.aggregate.mean });
+  if(state.consensusSeries.length > 180) state.consensusSeries.shift();
+}
+
+// ============ Features ============
+function computeFeatures(){
+  const p = state.prices;
+  if(p.length < 30) return;
+  const last = p[p.length-1];
+
+  const emaCross = ((state.ema9 ?? last) - (state.ema21 ?? last)) / last * 1000;
+
+  // RSI(14)
+  let gains=0, losses=0;
+  const n = Math.min(14, p.length-1);
+  for(let i=p.length-n;i<p.length;i++){
+    const d = p[i] - p[i-1];
+    if(d>0) gains+=d; else losses-=d;
+  }
+  const rs  = losses===0 ? 100 : gains/losses;
+  const rsi = 100 - 100/(1+rs);
+
+  const lb5  = p[Math.max(0, p.length-6)]  ?? last;
+  const lb30 = p[Math.max(0, p.length-31)] ?? last;
+  const mom1 = (last - lb5)  / lb5  * 1000;
+  const mom5 = (last - lb30) / lb30 *  500;
+
+  const window = p.slice(-30);
+  const rets = [];
+  for(let i=1;i<window.length;i++) rets.push((window[i]-window[i-1])/window[i-1]);
+  const mean = rets.reduce((s,v)=>s+v,0)/rets.length;
+  const variance = rets.reduce((s,v)=>s+(v-mean)*(v-mean),0)/rets.length;
+  const vol = Math.sqrt(variance) * 500;
+
+  state.features = {
+    emaCross,
+    rsi: (rsi - 50)/15,
+    mom1, mom5, vol,
+    sent: state.sentiment,
+  };
+}
+
+// ============ Binance WebSocket ============
+let ws=null, wsRetry=0;
+function connectWS(){
+  const dot  = document.getElementById('connDot');
+  const text = document.getElementById('connText');
+  dot.classList.remove('live','dead');
+  text.textContent = 'Connecting…';
+
+  try{
+    ws = new WebSocket('wss://stream.binance.com:9443/stream?streams=ethusdt@trade/ethusdt@ticker/ethusdt@kline_1m');
+  }catch(e){
+    setTimeout(connectWS, 2000); return;
+  }
+  ws.onopen = ()=>{
+    dot.classList.add('live'); text.textContent = 'LIVE · Binance';
+    wsRetry = 0;
+  };
+  ws.onclose = ()=>{
+    dot.classList.remove('live'); dot.classList.add('dead');
+    text.textContent = 'Disconnected · retrying…';
+    wsRetry++;
+    setTimeout(connectWS, Math.min(8000, 1000*wsRetry));
+  };
+  ws.onerror = ()=>{ try{ ws.close(); }catch(e){} };
+  ws.onmessage = e=>{
+    let msg; try{ msg = JSON.parse(e.data); }catch(err){ return; }
+    const stream = msg.stream, d = msg.data;
+    if(!stream || !d) return;
+    if(stream.endsWith('@trade'))      handleTrade(parseFloat(d.p));
+    else if(stream.endsWith('@ticker')) handleTicker(d);
+  };
+}
+
+function handleTrade(price){
+  state.prevPrice = state.lastPrice;
+  state.lastPrice = price;
+  state.prices.push(price);
+  if(state.prices.length > PRICE_BUFFER) state.prices.shift();
+
+  state.ema9  = ema(state.ema9,  price,  9);
+  state.ema21 = ema(state.ema21, price, 21);
+  state.ema50 = ema(state.ema50, price, 50);
+
+  const el = document.getElementById('lastPrice');
+  el.textContent = '$' + price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  if(state.prevPrice != null){
+    el.classList.remove('pos','neg');
+    el.classList.add(price >= state.prevPrice ? 'pos' : 'neg');
+  }
+}
+
+function handleTicker(d){
+  const chg = parseFloat(d.P);
+  const el = document.getElementById('chg24h');
+  el.textContent = (chg>=0?'+':'') + chg.toFixed(2) + '%';
+  el.className = 'v ' + (chg>=0?'pos':'neg');
+  document.getElementById('high24h').textContent = '$' + parseFloat(d.h).toFixed(2);
+  document.getElementById('low24h').textContent  = '$' + parseFloat(d.l).toFixed(2);
+  document.getElementById('vol24h').textContent  = (parseFloat(d.v)/1000).toFixed(1) + 'K ETH';
+}
+
+// ============ News + Sentiment ============
+const POS_WORDS = ['bull','bullish','rally','surge','soar','gain','high','breakout','approve','adopt','partnership','upgrade','launch','rise','rises','spike','jump','etf','inflow','accumulate','beats','record','green','optimis','strong','recover','momentum'];
+const NEG_WORDS = ['bear','bearish','crash','dump','plunge','sell-off','sell off','loss','low','liquidation','hack','exploit','ban','reject','outflow','sec','lawsuit','fine','down','red','fear','warn','warning','breakdown','collapse','tumble','weak','risk','concern'];
+
+function scoreHeadline(t){
+  const s = (t||'').toLowerCase();
+  let score = 0;
+  for(const w of POS_WORDS) if(s.includes(w)) score+=1;
+  for(const w of NEG_WORDS) if(s.includes(w)) score-=1;
+  return Math.max(-1, Math.min(1, score/3));
+}
+
+const MOCK_NEWS = [
+  {title:"Ethereum gas fees drop to multi-month lows as L2 adoption accelerates", time:Date.now()-1000*60*5},
+  {title:"Spot ETH ETF inflows surge past $200M as institutional demand returns", time:Date.now()-1000*60*22},
+  {title:"BTC consolidates near key resistance; traders watch ETH/BTC for breakout signal", time:Date.now()-1000*60*44},
+  {title:"Major exchange reports record stablecoin inflows ahead of FOMC meeting", time:Date.now()-1000*60*61},
+  {title:"Vitalik proposes new rollup upgrade aimed at improving throughput", time:Date.now()-1000*60*88},
+  {title:"Bearish divergence forms on ETH 4H chart — analyst warns of pullback", time:Date.now()-1000*60*105},
+  {title:"DeFi TVL crosses $90B led by Ethereum and Solana ecosystems", time:Date.now()-1000*60*130},
+  {title:"Whales accumulate ETH; on-chain data shows record long-term holders", time:Date.now()-1000*60*155},
+  {title:"SEC reviews additional staking-ETF applications, decision pending", time:Date.now()-1000*60*190},
+  {title:"Layer-2 daily transactions hit new all-time high, fees plummet further", time:Date.now()-1000*60*230},
+];
+
+let newsItems = [];
+
+async function fetchNews(){
+  const proxies = [
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+    u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u),
+  ];
+  const feeds = [
+    'https://cointelegraph.com/rss/tag/ethereum',
+    'https://cointelegraph.com/rss',
+    'https://decrypt.co/feed',
+  ];
+
+  for(const feed of feeds){
+    for(const px of proxies){
+      try{
+        const r = await fetch(px(feed), {cache:'no-store'});
+        if(!r.ok) continue;
+        const text = await r.text();
+        const xml  = new DOMParser().parseFromString(text, 'application/xml');
+        const items= [...xml.querySelectorAll('item')].slice(0, 25);
+        if(items.length){
+          newsItems = items.map(it=>{
+            const title   = it.querySelector('title')?.textContent?.trim() || '';
+            const pubDate = it.querySelector('pubDate')?.textContent?.trim() || '';
+            const link    = it.querySelector('link')?.textContent?.trim()    || '';
+            return {
+              title,
+              time: pubDate ? new Date(pubDate).getTime() : Date.now(),
+              link,
+              sentiment: scoreHeadline(title),
+            };
+          });
+          renderNews(); updateSentiment(); return;
+        }
+      }catch(e){ /* try next */ }
+    }
+  }
+  // fallback
+  newsItems = MOCK_NEWS.map(n=>({ ...n, sentiment: scoreHeadline(n.title) }));
+  renderNews(); updateSentiment();
+}
+
+function updateSentiment(){
+  if(!newsItems.length){ state.sentiment = 0; return; }
+  const now = Date.now();
+  let num=0, den=0;
+  for(const n of newsItems){
+    const ageMin = (now - n.time)/60000;
+    const w = Math.exp(-Math.max(0,ageMin)/120);   // ~2h half-life
+    num += n.sentiment * w;
+    den += w;
+  }
+  state.sentiment = den>0 ? num/den : 0;
+  const el = document.getElementById('newsSent');
+  el.textContent = state.sentiment.toFixed(2);
+  el.style.color = state.sentiment>0.05 ? 'var(--green)'
+                  : state.sentiment<-0.05 ? 'var(--red)'
+                  : 'var(--muted)';
+}
+
+function renderNews(){
+  const list = document.getElementById('newsList');
+  document.getElementById('newsCount').textContent = '· '+newsItems.length;
+  if(!newsItems.length){
+    list.innerHTML = '<div style="color:var(--muted); font-size:11px; padding:8px 0;">No headlines</div>';
+    return;
+  }
+  list.innerHTML = newsItems.slice(0,25).map(n=>{
+    const cls = n.sentiment>0.05 ? 'pos' : n.sentiment<-0.05 ? 'neg' : 'neu';
+    const lbl = n.sentiment>0.05 ? 'BULL' : n.sentiment<-0.05 ? 'BEAR' : 'NEU';
+    return `<div class="news-item">
+      <div class="news-title">${escapeHtml(n.title)}</div>
+      <div class="news-meta"><span>${humanAgo(n.time)}</span><span class="sent ${cls}">${lbl} ${n.sentiment.toFixed(2)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ============ UI: agent grid + tooltip + leaderboard ============
+function buildAgentGrid(){
+  const g = document.getElementById('agentGrid');
+  g.innerHTML='';
+  for(const a of state.agents){
+    const el = document.createElement('div');
+    el.className='agent flat';
+    el.dataset.id = a.id;
+    el.innerHTML = `<div class="id">#${a.id}</div><div class="pnl">$0</div>`;
+    el.addEventListener('mouseenter', e=>showTT(e,a));
+    el.addEventListener('mousemove',  moveTT);
+    el.addEventListener('mouseleave', ()=>{ document.getElementById('tt').style.display='none'; });
+    g.appendChild(el);
+  }
+}
+function showTT(e, a){
+  const el = document.getElementById('tt');
+  const posLbl = a.position===1?'LONG':a.position===-1?'SHORT':'FLAT';
+  const posCol = a.position===1?'var(--green)':a.position===-1?'var(--red)':'var(--muted)';
+  const pnlCol = a.pnl>=0?'var(--green)':'var(--red)';
+  el.innerHTML = `
+    <div style="font-weight:700; margin-bottom:6px; color:var(--accent);">Agent #${a.id}</div>
+    <div>Position: <span style="color:${posCol}; font-weight:600;">${posLbl}</span></div>
+    <div>Signal: <span style="font-weight:600;">${a.lastSignal.toFixed(3)}</span></div>
+    <div>P&amp;L: <span style="color:${pnlCol}; font-weight:600;">${a.pnl>=0?'+':''}$${a.pnl.toFixed(2)}</span></div>
+    <div>Trades: ${a.trades} · ${a.trades?((a.wins/a.trades*100).toFixed(0)):0}% win</div>
+    <div style="color:var(--muted); font-size:10px; margin-top:6px; line-height:1.5;">
+      w: ema=${a.w.emaCross.toFixed(2)} · rsi=${a.w.rsi.toFixed(2)}<br>
+      mom=${a.w.mom1.toFixed(2)} · vol=${a.w.vol.toFixed(2)} · sent=${a.w.sent.toFixed(2)}
+    </div>`;
+  el.style.display='block';
+  moveTT(e);
+}
+function moveTT(e){
+  const el = document.getElementById('tt');
+  const w = el.offsetWidth, h = el.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if(x + w > window.innerWidth)  x = e.clientX - w - 14;
+  if(y + h > window.innerHeight) y = e.clientY - h - 14;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+}
+
+function renderAgents(){
+  const tiles = document.querySelectorAll('.agent');
+  for(let i=0;i<state.agents.length;i++){
+    const a = state.agents[i];
+    const t = tiles[i];
+    const cls = a.position===1?'long':a.position===-1?'short':'flat';
+    if(!t.classList.contains(cls)){
+      t.className = 'agent ' + cls;
+    }
+    t.querySelector('.pnl').textContent = (a.pnl>=0?'+':'') + a.pnl.toFixed(0);
+  }
+}
+
+function renderLeaderboard(){
+  if(!state.agents.length) return;
+  const sorted = [...state.agents].sort((x,y)=>y.pnl-x.pnl);
+  const top = sorted.slice(0,5);
+  document.getElementById('leaderboard').innerHTML = top.map((a,i)=>{
+    const col = a.pnl>=0?'var(--green)':'var(--red)';
+    const pos = a.position===1?'L':a.position===-1?'S':'·';
+    const posCol = a.position===1?'var(--green)':a.position===-1?'var(--red)':'var(--muted)';
+    return `<div style="display:flex; justify-content:space-between;">
+      <span>${i+1}. Agent #${a.id} <span style="color:${posCol};">[${pos}]</span></span>
+      <span style="color:${col};">${a.pnl>=0?'+':''}$${a.pnl.toFixed(2)}</span>
+    </div>`;
+  }).join('');
+
+  const best = sorted[0];
+  document.getElementById('bestAgent').textContent = '#'+best.id+' '+(best.pnl>=0?'+':'')+'$'+best.pnl.toFixed(0);
+
+  const total = state.agents.reduce((s,a)=>s+a.pnl,0);
+  const pe = document.getElementById('totalPnl');
+  pe.textContent = (total>=0?'+$':'-$') + Math.abs(total).toFixed(2);
+  pe.style.color = total>=0?'var(--green)':'var(--red)';
+
+  document.getElementById('totalTrades').textContent = state.totalTrades;
+  document.getElementById('winRate').textContent = state.totalTrades ? (state.wins/state.totalTrades*100).toFixed(1)+'%' : '—';
+  if(state.aggregate) document.getElementById('lstmScore').textContent = state.aggregate.mean.toFixed(3);
+}
+
+function renderConsensus(){
+  if(!state.aggregate) return;
+  const { longC, shortC, flatC, mean } = state.aggregate;
+  let label='HOLD', color='var(--amber)';
+  if(mean >  0.15){ label='BUY';  color='var(--green)'; }
+  else if(mean < -0.15){ label='SELL'; color='var(--red)'; }
+  const cs = document.getElementById('consensusSignal');
+  cs.textContent = label;
+  cs.style.color = color;
+  document.getElementById('consensusDesc').textContent =
+    `Score ${mean.toFixed(3)}  ·  ${longC}L / ${flatC}F / ${shortC}S`;
+  document.getElementById('lLong').textContent  = longC;
+  document.getElementById('lFlat').textContent  = flatC;
+  document.getElementById('lShort').textContent = shortC;
+  document.getElementById('bLong').style.width  = longC  + '%';
+  document.getElementById('bFlat').style.width  = flatC  + '%';
+  document.getElementById('bShort').style.width = shortC + '%';
+}
+
+// ============ Charts ============
+let priceChart, signalChart;
+function initCharts(){
+  const baseOpts = {
+    responsive:true, maintainAspectRatio:false, animation:false,
+    plugins:{
+      legend:{display:true, labels:{color:'#7a8599', font:{family:'monospace', size:10}, boxWidth:12, boxHeight:2}},
+      tooltip:{backgroundColor:'#11161f', borderColor:'#1f2733', borderWidth:1, titleColor:'#cdd6f4', bodyColor:'#cdd6f4'}
+    },
+    scales:{
+      x:{display:false, grid:{display:false}},
+      y:{grid:{color:'#161c27'}, ticks:{color:'#7a8599', font:{family:'monospace', size:9}}}
+    },
+  };
+  priceChart = new Chart(document.getElementById('priceChart').getContext('2d'), {
+    type:'line',
+    data:{labels:[], datasets:[
+      {label:'ETHUSDT', data:[], borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,0.10)', fill:true, tension:0.25, pointRadius:0, borderWidth:1.6},
+      {label:'EMA 9',  data:[], borderColor:'#22c55e', pointRadius:0, borderWidth:1, borderDash:[5,3]},
+      {label:'EMA 21', data:[], borderColor:'#ef4444', pointRadius:0, borderWidth:1, borderDash:[5,3]},
+    ]},
+    options: baseOpts
+  });
+  signalChart = new Chart(document.getElementById('signalChart').getContext('2d'), {
+    type:'line',
+    data:{labels:[], datasets:[
+      {label:'Consensus', data:[], borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,0.12)', fill:true, tension:0.3, pointRadius:0, borderWidth:1.6}
+    ]},
+    options: {...baseOpts,
+      plugins:{...baseOpts.plugins, legend:{display:false}},
+      scales:{...baseOpts.scales,
+        y:{...baseOpts.scales.y, min:-1, max:1,
+           ticks:{...baseOpts.scales.y.ticks, callback:v=>v.toFixed(2)}}}}
+  });
+}
+
+function refreshCharts(){
+  const pts = state.prices.slice(-120);
+  if(pts.length){
+    priceChart.data.labels = pts.map(()=>'')
+    priceChart.data.datasets[0].data = pts;
+    let e9=null, e21=null; const e9s=[], e21s=[];
+    for(const p of pts){
+      e9  = ema(e9,  p,  9);
+      e21 = ema(e21, p, 21);
+      e9s.push(e9); e21s.push(e21);
+    }
+    priceChart.data.datasets[1].data = e9s;
+    priceChart.data.datasets[2].data = e21s;
+    priceChart.update('none');
+  }
+  const sig = state.consensusSeries;
+  signalChart.data.labels = sig.map(()=>'')
+  signalChart.data.datasets[0].data = sig.map(s=>s.v);
+  signalChart.update('none');
+}
+
+// ============ Main loop ============
+function tick(){
+  computeFeatures();
+  stepAgents();
+  renderAgents();
+  renderConsensus();
+  renderLeaderboard();
+  refreshCharts();
+}
+
+// ============ Init ============
+function init(){
+  initAgents();
+  buildAgentGrid();
+  initCharts();
+  connectWS();
+  fetchNews();
+  setInterval(fetchNews, 5*60*1000);                 // refresh news every 5 min
+  setInterval(()=>{ if(newsItems.length) renderNews(); updateSentiment(); }, 30000);
+  setInterval(tick, 1000);                            // 1Hz agent step + render
+}
+init();
+</script>
+</body>
+</html>
