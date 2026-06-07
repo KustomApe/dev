@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AI Trading · 100 Agents · ETHUSDT Live</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <style>
   :root{
     --bg:#0a0e14; --panel:#11161f; --panel-2:#161c27; --border:#1f2733;
@@ -15,7 +16,8 @@
   html,body{height:100%;}
   body{
     margin:0;
-    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas,
+      'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
     background:
       radial-gradient(1200px 600px at 80% -10%, rgba(6,182,212,0.05), transparent 60%),
       radial-gradient(900px 500px at -10% 110%, rgba(168,85,247,0.05), transparent 60%),
@@ -29,6 +31,7 @@
     padding:10px 18px; border-bottom:1px solid var(--border);
     background:linear-gradient(180deg, #0d121b, #0a0e14);
     position:sticky; top:0; z-index:10;
+    gap:14px; flex-wrap:wrap;
   }
   .brand{display:flex; align-items:center; gap:10px;}
   .brand .logo{
@@ -53,9 +56,21 @@
   .dot.dead{background:var(--red);}
   @keyframes pulse{0%{opacity:1;} 50%{opacity:0.45;} 100%{opacity:1;}}
 
+  .lang-toggle{
+    display:flex; background:#0c1219; border:1px solid var(--border);
+    border-radius:14px; overflow:hidden;
+  }
+  .lang-btn{
+    background:transparent; border:none; color:var(--muted);
+    padding:5px 12px; font-size:11px; cursor:pointer; font-family:inherit;
+    letter-spacing:.04em; transition: background .15s, color .15s;
+  }
+  .lang-btn:hover{color:var(--text);}
+  .lang-btn.active{background:var(--accent); color:#fff; font-weight:600;}
+
   main{
     display:grid;
-    grid-template-columns: 300px 1fr 340px;
+    grid-template-columns: 320px 1fr 340px;
     gap: 10px;
     padding: 10px;
     min-height: calc(100vh - 92px);
@@ -140,6 +155,31 @@
   .sent.neg{background:#2a0f0f; color:var(--red);}
   .sent.neu{background:#1f1f24; color:var(--muted);}
 
+  .badge{
+    font-size:9px; padding:2px 7px; border-radius:8px;
+    background:#1f1f24; color:var(--muted); font-weight:600; letter-spacing:.06em;
+  }
+  .badge[data-s="loading"], .badge[data-s="training"]{background:#241a08; color:var(--amber);}
+  .badge[data-s="ready"]{background:#0f2818; color:var(--green); box-shadow:0 0 6px rgba(34,197,94,.25);}
+  .badge[data-s="error"]{background:#2a0f0f; color:var(--red);}
+  .progress{
+    height:3px; background:#0c1219; border-radius:2px; overflow:hidden; margin-top:6px;
+  }
+  .progress > span{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--purple)); width:0%; transition:width .4s;}
+
+  .model-block{padding:8px 0; border-bottom:1px solid var(--border);}
+  .model-block:first-of-type{padding-top:0;}
+  .model-block:last-of-type{border-bottom:none; padding-bottom:0;}
+  .model-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .model-name{font-weight:700; font-size:12px; letter-spacing:.05em;}
+  .model-status{font-size:10px; color:var(--muted); margin-bottom:2px;}
+  .model-metrics{
+    display:flex; justify-content:space-between; gap:8px;
+    font-size:10px; color:var(--muted); margin-top:7px;
+  }
+  .model-metrics > div{flex:1;}
+  .model-metrics b{color:var(--text); font-weight:600; display:block; margin-top:1px; font-size:11px;}
+
   .tt{
     position:fixed;
     background:#1a212e; border:1px solid var(--border); border-radius:6px;
@@ -154,7 +194,7 @@
     color: var(--muted);
     font-size: 10px;
     text-align:center;
-    line-height: 1.5;
+    line-height: 1.6;
   }
   footer b{color:#cdd6f4; font-weight:600;}
 
@@ -173,15 +213,21 @@
 <header>
   <div class="brand">
     <div class="logo">AI</div>
-    <h1>AI TRADING · 100 AGENTS · <span style="color:var(--accent);">ETHUSDT</span> <span class="lbl">/ LSTM + LLM SIGNALS / SCALPING</span></h1>
+    <h1>AI TRADING · 100 AGENTS · <span style="color:var(--accent);">ETHUSDT</span>
+      <span class="lbl" data-i18n="subtitle">/ LSTM + GRU + LLM シグナル / スキャルピング</span>
+    </h1>
   </div>
   <div class="ticker">
-    <div><div class="label">Last</div><div class="v" id="lastPrice">—</div></div>
-    <div><div class="label">24h Chg</div><div class="v" id="chg24h">—</div></div>
-    <div><div class="label">24h High</div><div class="v" id="high24h">—</div></div>
-    <div><div class="label">24h Low</div><div class="v" id="low24h">—</div></div>
-    <div><div class="label">24h Vol</div><div class="v" id="vol24h">—</div></div>
-    <span class="conn"><span class="dot" id="connDot"></span><span id="connText">Connecting…</span></span>
+    <div><div class="label" data-i18n="last">現在値</div><div class="v" id="lastPrice">—</div></div>
+    <div><div class="label" data-i18n="chg24">24h変動</div><div class="v" id="chg24h">—</div></div>
+    <div><div class="label" data-i18n="high24">24h高値</div><div class="v" id="high24h">—</div></div>
+    <div><div class="label" data-i18n="low24">24h安値</div><div class="v" id="low24h">—</div></div>
+    <div><div class="label" data-i18n="vol24">24h出来高</div><div class="v" id="vol24h">—</div></div>
+    <span class="conn"><span class="dot" id="connDot"></span><span id="connText" data-i18n="connecting">接続中…</span></span>
+    <div class="lang-toggle">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn active" data-lang="ja">日本語</button>
+    </div>
   </div>
 </header>
 
@@ -189,39 +235,76 @@
   <!-- LEFT COLUMN -->
   <div class="col">
     <div class="panel">
-      <h2>Consensus Signal</h2>
+      <h2 data-i18n="consensus">コンセンサスシグナル</h2>
       <div class="consensus">
         <div class="signal" id="consensusSignal">—</div>
-        <div class="desc" id="consensusDesc">Awaiting market data…</div>
+        <div class="desc" id="consensusDesc" data-i18n="awaiting">市場データ待機中…</div>
         <div class="bars">
           <div class="bar"><span id="bLong"  style="background:var(--green);"></span></div>
           <div class="bar"><span id="bFlat"  style="background:var(--muted);"></span></div>
           <div class="bar"><span id="bShort" style="background:var(--red);"></span></div>
         </div>
         <div class="legend">
-          <span style="color:var(--green);">LONG <b id="lLong">0</b></span>
-          <span>FLAT <b id="lFlat">0</b></span>
-          <span style="color:var(--red);">SHORT <b id="lShort">0</b></span>
+          <span style="color:var(--green);"><span data-i18n="long">ロング</span> <b id="lLong">0</b></span>
+          <span><span data-i18n="flat">フラット</span> <b id="lFlat">0</b></span>
+          <span style="color:var(--red);"><span data-i18n="short">ショート</span> <b id="lShort">0</b></span>
         </div>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Aggregate P&amp;L · Simulated</h2>
+      <h2 data-i18n="aiModels">AIモデル · TensorFlow.js</h2>
+
+      <div class="model-block">
+        <div class="model-head">
+          <span class="model-name" style="color:var(--accent);">LSTM</span>
+          <span class="badge" id="lstmBadge" data-s="idle" data-i18n="idle">アイドル</span>
+        </div>
+        <div class="model-status" id="lstmStatusMsg" data-i18n="initializing">モデル初期化中…</div>
+        <div class="progress"><span id="lstmProgress"></span></div>
+        <div class="model-metrics">
+          <div><span data-i18n="prediction">予測値</span><b id="lstmPrediction">—</b></div>
+          <div><span data-i18n="inference">推論</span><b id="lstmInfMs">—</b></div>
+          <div><span data-i18n="trainLoss">学習損失</span><b id="lstmLoss">—</b></div>
+        </div>
+      </div>
+
+      <div class="model-block">
+        <div class="model-head">
+          <span class="model-name" style="color:var(--purple);">GRU</span>
+          <span class="badge" id="gruBadge" data-s="idle" data-i18n="idle">アイドル</span>
+        </div>
+        <div class="model-status" id="gruStatusMsg" data-i18n="initializing">モデル初期化中…</div>
+        <div class="progress"><span id="gruProgress"></span></div>
+        <div class="model-metrics">
+          <div><span data-i18n="prediction">予測値</span><b id="gruPrediction">—</b></div>
+          <div><span data-i18n="inference">推論</span><b id="gruInfMs">—</b></div>
+          <div><span data-i18n="trainLoss">学習損失</span><b id="gruLoss">—</b></div>
+        </div>
+      </div>
+
+      <div class="model-block">
+        <h2 style="margin:4px 0 6px 0;" data-i18n="trainingLoss">学習損失推移 · エポック別</h2>
+        <div style="height:120px; position:relative;"><canvas id="lossChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="aggPnl">総損益 · シミュレーション</h2>
       <div class="metric-grid">
-        <div class="metric"><div class="k">Total P&amp;L</div><div class="v" id="totalPnl">$0.00</div></div>
-        <div class="metric"><div class="k">Best Agent</div><div class="v" id="bestAgent">—</div></div>
-        <div class="metric"><div class="k">Win Rate</div><div class="v" id="winRate">—</div></div>
-        <div class="metric"><div class="k">Trades</div><div class="v" id="totalTrades">0</div></div>
-        <div class="metric"><div class="k">LSTM Score</div><div class="v" id="lstmScore">—</div></div>
-        <div class="metric"><div class="k">News Sentiment</div><div class="v" id="newsSent">—</div></div>
+        <div class="metric"><div class="k" data-i18n="totalPnl">合計損益</div><div class="v" id="totalPnl">$0.00</div></div>
+        <div class="metric"><div class="k" data-i18n="bestAgent">ベストエージェント</div><div class="v" id="bestAgent">—</div></div>
+        <div class="metric"><div class="k" data-i18n="winRate">勝率</div><div class="v" id="winRate">—</div></div>
+        <div class="metric"><div class="k" data-i18n="trades">取引回数</div><div class="v" id="totalTrades">0</div></div>
+        <div class="metric"><div class="k" data-i18n="consensusMu">コンセンサスμ</div><div class="v" id="lstmScore">—</div></div>
+        <div class="metric"><div class="k" data-i18n="newsSent">ニュース感情</div><div class="v" id="newsSent">—</div></div>
       </div>
     </div>
 
     <div class="panel" style="flex:1;">
-      <h2>Live Crypto News <span style="color:var(--muted); font-weight:400;" id="newsCount"></span></h2>
+      <h2><span data-i18n="liveNews">暗号通貨ニュース</span> <span style="color:var(--muted); font-weight:400;" id="newsCount"></span></h2>
       <div class="news-list" id="newsList">
-        <div style="color:var(--muted); font-size:11px; padding:8px 0;">Fetching headlines…</div>
+        <div style="color:var(--muted); font-size:11px; padding:8px 0;" data-i18n="fetchingHeadlines">ヘッドライン取得中…</div>
       </div>
     </div>
   </div>
@@ -229,14 +312,14 @@
   <!-- CENTER -->
   <div class="col">
     <div class="panel" style="flex:1.4;">
-      <h2>ETHUSDT · Live Price + EMA(9/21)
-        <span style="color:var(--muted); font-weight:400;">Binance Spot · 1s ticks</span>
+      <h2><span data-i18n="priceChart">ETHUSDT · ライブ価格 + EMA(9/21)</span>
+        <span style="color:var(--muted); font-weight:400;" data-i18n="binanceSpot">Binance スポット · 1秒ティック</span>
       </h2>
       <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
     </div>
     <div class="panel" style="flex:1;">
-      <h2>Aggregate Signal Score · -1 SHORT → +1 LONG
-        <span style="color:var(--muted); font-weight:400;">100-agent consensus</span>
+      <h2><span data-i18n="signalChart">総合シグナルスコア · -1 ショート → +1 ロング</span>
+        <span style="color:var(--muted); font-weight:400;" data-i18n="consensus100">100エージェント コンセンサス</span>
       </h2>
       <div class="chart-wrap"><canvas id="signalChart"></canvas></div>
     </div>
@@ -245,50 +328,185 @@
   <!-- RIGHT -->
   <div class="col">
     <div class="panel" style="flex:1;">
-      <h2>100 Agents · LSTM + LLM
-        <span style="color:var(--muted); font-weight:400;">scalping</span>
+      <h2><span data-i18n="agents100">100エージェント · LSTM + GRU + LLM</span>
+        <span style="color:var(--muted); font-weight:400;" data-i18n="scalping">スキャルピング</span>
       </h2>
       <div class="agents" id="agentGrid"></div>
     </div>
     <div class="panel">
-      <h2>Top 5 Performers</h2>
+      <h2 data-i18n="top5">トップ5パフォーマー</h2>
       <div id="leaderboard" style="font-size:11px; line-height:1.8;"></div>
     </div>
   </div>
 </main>
 
 <footer>
-  <b>Simulation only — no real trades placed.</b> Live ETHUSDT prices via Binance public WebSocket.
-  Each of the 100 agents runs a randomized pseudo-LSTM (EMA cross · RSI · momentum · volatility) blended with an LLM-style headline sentiment score.
-  Scalping logic: enter at signal threshold, exit on opposite signal, +0.40% TP, -0.25% SL, 0.04% fee/side.
+  <b data-i18n="disclaimer">シミュレーションのみ — 実際の取引は行われません。</b>
+  <span data-i18n="footer">ETHUSDTの価格はBinance公開WebSocketから取得。LSTM-16とGRU-16（seq=20）の2モデルをブラウザ内で学習し、100体のエージェントが各予測値とEMAクロス・RSI・モメンタム・ボラティリティ・LLM型ニュース感情を組み合わせて取引判断します。</span>
 </footer>
 
 <div class="tt" id="tt"></div>
 
 <script>
+// ============ I18N ============
+const I18N = {
+  en: {
+    subtitle: '/ LSTM + GRU + LLM SIGNALS / SCALPING',
+    last: 'Last', chg24: '24h Chg', high24: '24h High', low24: '24h Low', vol24: '24h Vol',
+    connecting: 'Connecting…',
+    live: 'LIVE · Binance', disconnected: 'Disconnected · retrying…',
+    consensus: 'Consensus Signal',
+    awaiting: 'Awaiting market data…',
+    long: 'LONG', flat: 'FLAT', short: 'SHORT',
+    buy: 'BUY', sell: 'SELL', hold: 'HOLD',
+    aiModels: 'AI Models · TensorFlow.js',
+    initializing: 'Initializing model…',
+    prediction: 'Prediction', inference: 'Inference',
+    trainLoss: 'Train Loss', samples: 'Samples',
+    trainingLoss: 'Training Loss · per epoch',
+    aggPnl: 'Aggregate P&L · Simulated',
+    totalPnl: 'Total P&L', bestAgent: 'Best Agent',
+    winRate: 'Win Rate', trades: 'Trades',
+    consensusMu: 'Consensus μ', newsSent: 'News Sentiment',
+    liveNews: 'Live Crypto News',
+    fetchingHeadlines: 'Fetching headlines…',
+    noHeadlines: 'No headlines',
+    priceChart: 'ETHUSDT · Live Price + EMA(9/21)',
+    binanceSpot: 'Binance Spot · 1s ticks',
+    signalChart: 'Aggregate Signal Score · -1 SHORT → +1 LONG',
+    consensus100: '100-agent consensus',
+    agents100: '100 Agents · LSTM + GRU + LLM',
+    scalping: 'scalping',
+    top5: 'Top 5 Performers',
+    disclaimer: 'Simulation only — no real trades placed.',
+    footer: 'Live ETHUSDT prices via Binance public WebSocket. Two TensorFlow.js models (LSTM-16, GRU-16, seq=20) train in-browser; each of 100 agents weights both predictions alongside EMA cross · RSI · momentum · volatility · LLM-style news sentiment.',
+    bull: 'BULL', bear: 'BEAR', neu: 'NEU',
+    idle: 'IDLE', loading: 'LOADING', training: 'TRAINING', ready: 'READY', error: 'ERROR',
+    fetchingKlines: 'Fetching 1000 ETHUSDT 1m candles…',
+    fetchFailed: 'Could not fetch history (CORS?)',
+    preparing: 'Preparing {n} candles…',
+    tooFew: 'Too few samples',
+    epoch: 'Epoch', trained: 'Trained',
+    samplesLc: 'samples',
+    tfNotLoaded: 'TensorFlow.js not loaded',
+    trainingFailed: 'Training failed',
+    waiting: 'Waiting for LSTM to finish…',
+    score: 'Score',
+    position: 'Position', signal: 'Signal', pnl: 'P&L', tradesCount: 'Trades', win: 'win',
+    sAgo: 's ago', mAgo: 'm ago', hAgo: 'h ago', dAgo: 'd ago',
+    epochLabel: 'Epoch',
+  },
+  ja: {
+    subtitle: '/ LSTM + GRU + LLM シグナル / スキャルピング',
+    last: '現在値', chg24: '24h変動', high24: '24h高値', low24: '24h安値', vol24: '24h出来高',
+    connecting: '接続中…',
+    live: 'ライブ · Binance', disconnected: '切断 · 再接続中…',
+    consensus: 'コンセンサスシグナル',
+    awaiting: '市場データ待機中…',
+    long: 'ロング', flat: 'フラット', short: 'ショート',
+    buy: '買い', sell: '売り', hold: 'ホールド',
+    aiModels: 'AIモデル · TensorFlow.js',
+    initializing: 'モデル初期化中…',
+    prediction: '予測値', inference: '推論',
+    trainLoss: '学習損失', samples: 'サンプル数',
+    trainingLoss: '学習損失推移 · エポック別',
+    aggPnl: '総損益 · シミュレーション',
+    totalPnl: '合計損益', bestAgent: 'ベストエージェント',
+    winRate: '勝率', trades: '取引回数',
+    consensusMu: 'コンセンサスμ', newsSent: 'ニュース感情',
+    liveNews: '暗号通貨ニュース',
+    fetchingHeadlines: 'ヘッドライン取得中…',
+    noHeadlines: 'ヘッドラインなし',
+    priceChart: 'ETHUSDT · ライブ価格 + EMA(9/21)',
+    binanceSpot: 'Binance スポット · 1秒ティック',
+    signalChart: '総合シグナルスコア · -1 ショート → +1 ロング',
+    consensus100: '100エージェント コンセンサス',
+    agents100: '100エージェント · LSTM + GRU + LLM',
+    scalping: 'スキャルピング',
+    top5: 'トップ5パフォーマー',
+    disclaimer: 'シミュレーションのみ — 実際の取引は行われません。',
+    footer: 'ETHUSDTの価格はBinance公開WebSocketから取得。LSTM-16とGRU-16（seq=20）の2モデルをブラウザ内で学習し、100体のエージェントが各予測値とEMAクロス・RSI・モメンタム・ボラティリティ・LLM型ニュース感情を組み合わせて取引判断します。',
+    bull: '強気', bear: '弱気', neu: '中立',
+    idle: 'アイドル', loading: '読込中', training: '学習中', ready: '完了', error: 'エラー',
+    fetchingKlines: 'ETHUSDT 1分足 1000本を取得中…',
+    fetchFailed: '履歴取得失敗 (CORS?)',
+    preparing: '{n}本を前処理中…',
+    tooFew: 'サンプル不足',
+    epoch: 'エポック', trained: '学習完了',
+    samplesLc: 'サンプル',
+    tfNotLoaded: 'TensorFlow.js 未読込',
+    trainingFailed: '学習失敗',
+    waiting: 'LSTMの学習完了を待機中…',
+    score: 'スコア',
+    position: 'ポジション', signal: 'シグナル', pnl: '損益', tradesCount: '取引', win: '勝率',
+    sAgo: '秒前', mAgo: '分前', hAgo: '時間前', dAgo: '日前',
+    epochLabel: 'エポック',
+  },
+};
+let curLang = 'ja';
+function t(key){ return (I18N[curLang] && I18N[curLang][key]) || I18N.en[key] || key; }
+function applyI18N(){
+  document.documentElement.lang = curLang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+}
+function setLang(lang){
+  curLang = lang;
+  applyI18N();
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  // refresh dynamic UI
+  if(newsItems.length) renderNews();
+  if(state.aggregate) renderConsensus();
+  refreshModelStatusText();
+  if(lossChart){ lossChart.options.scales.x.title.text = t('epochLabel'); lossChart.update('none'); }
+}
+
 // ============ Config ============
 const AGENT_COUNT     = 100;
-const FEE_RATE        = 0.0004;   // 0.04% per side
-const STOP_PCT        = 0.0025;   // 0.25% stop loss
-const TP_PCT          = 0.0040;   // 0.40% take profit (scalping)
-const POSITION_SIZE   = 100;      // $100 notional per agent
-const PRICE_BUFFER    = 240;      // ~4 minutes of trade ticks
+const FEE_RATE        = 0.0004;
+const STOP_PCT        = 0.0025;
+const TP_PCT          = 0.0040;
+const POSITION_SIZE   = 100;
+const PRICE_BUFFER    = 240;
+
+// LSTM/GRU config
+const SEQ_WINDOW      = 20;
+const SEQ_FEATURES    = 2;
+const LSTM_UNITS      = 16;
+const GRU_UNITS       = 16;
+const TRAIN_EPOCHS    = 12;
+const TRAIN_BATCH     = 32;
+const HIST_LIMIT      = 1000;
+const RETURN_SCALE    = 100;
 
 // ============ State ============
 const state = {
-  lastPrice: null,
-  prevPrice: null,
+  lastPrice: null, prevPrice: null,
   prices: [],
   ema9: null, ema21: null, ema50: null,
   sentiment: 0,
   consensusSeries: [],
   agents: [],
-  totalTrades: 0,
-  wins: 0,
-  losses: 0,
+  totalTrades: 0, wins: 0, losses: 0,
   features: null,
   aggregate: null,
+  history: [],                                  // shared 1m candle history for models
+  lstm: makeModelSlot(),
+  gru:  makeModelSlot(),
+  lastStatusMsgKey: { lstm: null, gru: null },  // for re-translation on lang switch
 };
+function makeModelSlot(){
+  return {
+    model: null, status: 'idle',
+    loss: null, prediction: 0,
+    inferenceMs: null, samples: 0,
+    lossHistory: [],   // [{epoch, loss, valLoss}]
+    statusParams: null,
+  };
+}
 
 // ============ Helpers ============
 function rnd(min, max){ return Math.random()*(max-min)+min; }
@@ -300,13 +518,13 @@ function ema(prev, value, period){
 function escapeHtml(s){return s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function humanAgo(ts){
   const s = Math.max(0, Math.floor((Date.now()-ts)/1000));
-  if(s<60) return s+'s ago';
-  const m = Math.floor(s/60); if(m<60) return m+'m ago';
-  const h = Math.floor(m/60); if(h<24) return h+'h ago';
-  return Math.floor(h/24)+'d ago';
+  if(s<60) return s+t('sAgo');
+  const m = Math.floor(s/60); if(m<60) return m+t('mAgo');
+  const h = Math.floor(m/60); if(h<24) return h+t('hAgo');
+  return Math.floor(h/24)+t('dAgo');
 }
 
-// ============ Agents (pseudo-LSTM) ============
+// ============ Agents ============
 function initAgents(){
   state.agents = [];
   for(let i=0;i<AGENT_COUNT;i++){
@@ -319,6 +537,8 @@ function initAgents(){
         mom5:     rndN(),
         vol:      rndN()*0.6,
         sent:     rndN()*0.9,
+        lstmPred: rndN()*1.2,
+        gruPred:  rndN()*1.2,
         bias:     rnd(-0.2,0.2),
       },
       thresholdLong:   rnd(0.18, 0.45),
@@ -338,8 +558,10 @@ function agentScore(a, f){
     a.w.mom5     * f.mom5     +
     a.w.vol      * f.vol      +
     a.w.sent     * f.sent     +
+    a.w.lstmPred * f.lstmPred +
+    a.w.gruPred  * f.gruPred  +
     a.w.bias;
-  return Math.tanh(x);   // squash to (-1, 1)
+  return Math.tanh(x);
 }
 
 function stepAgents(){
@@ -353,10 +575,10 @@ function stepAgents(){
     sum += s;
 
     if(a.position === 0){
-      if(s >  a.thresholdLong) { a.position =  1; a.entry = px; }
+      if(s >  a.thresholdLong){ a.position =  1; a.entry = px; }
       else if(s < a.thresholdShort){ a.position = -1; a.entry = px; }
     } else {
-      const move = (px - a.entry) / a.entry * a.position; // positive when winning
+      const move = (px - a.entry) / a.entry * a.position;
       let exit=false;
       if(move >=  TP_PCT) exit = true;
       else if(move <= -STOP_PCT) exit = true;
@@ -389,7 +611,6 @@ function computeFeatures(){
 
   const emaCross = ((state.ema9 ?? last) - (state.ema21 ?? last)) / last * 1000;
 
-  // RSI(14)
   let gains=0, losses=0;
   const n = Math.min(14, p.length-1);
   for(let i=p.length-n;i<p.length;i++){
@@ -416,6 +637,8 @@ function computeFeatures(){
     rsi: (rsi - 50)/15,
     mom1, mom5, vol,
     sent: state.sentiment,
+    lstmPred: state.lstm.prediction || 0,
+    gruPred:  state.gru.prediction  || 0,
   };
 }
 
@@ -425,7 +648,7 @@ function connectWS(){
   const dot  = document.getElementById('connDot');
   const text = document.getElementById('connText');
   dot.classList.remove('live','dead');
-  text.textContent = 'Connecting…';
+  text.textContent = t('connecting');
 
   try{
     ws = new WebSocket('wss://stream.binance.com:9443/stream?streams=ethusdt@trade/ethusdt@ticker/ethusdt@kline_1m');
@@ -433,12 +656,12 @@ function connectWS(){
     setTimeout(connectWS, 2000); return;
   }
   ws.onopen = ()=>{
-    dot.classList.add('live'); text.textContent = 'LIVE · Binance';
+    dot.classList.add('live'); text.textContent = t('live');
     wsRetry = 0;
   };
   ws.onclose = ()=>{
     dot.classList.remove('live'); dot.classList.add('dead');
-    text.textContent = 'Disconnected · retrying…';
+    text.textContent = t('disconnected');
     wsRetry++;
     setTimeout(connectWS, Math.min(8000, 1000*wsRetry));
   };
@@ -447,8 +670,9 @@ function connectWS(){
     let msg; try{ msg = JSON.parse(e.data); }catch(err){ return; }
     const stream = msg.stream, d = msg.data;
     if(!stream || !d) return;
-    if(stream.endsWith('@trade'))      handleTrade(parseFloat(d.p));
-    else if(stream.endsWith('@ticker')) handleTicker(d);
+    if(stream.endsWith('@trade'))         handleTrade(parseFloat(d.p));
+    else if(stream.endsWith('@ticker'))   handleTicker(d);
+    else if(stream.endsWith('@kline_1m')) handleKline(d.k);
   };
 }
 
@@ -478,6 +702,206 @@ function handleTicker(d){
   document.getElementById('high24h').textContent = '$' + parseFloat(d.h).toFixed(2);
   document.getElementById('low24h').textContent  = '$' + parseFloat(d.l).toFixed(2);
   document.getElementById('vol24h').textContent  = (parseFloat(d.v)/1000).toFixed(1) + 'K ETH';
+}
+
+// ============ TensorFlow.js — LSTM + GRU ============
+async function fetchHistoricalKlines(){
+  const url = `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=${HIST_LIMIT}`;
+  const attempts = [
+    url,
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    'https://corsproxy.io/?' + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url),
+  ];
+  for(const u of attempts){
+    try{
+      const r = await fetch(u, {cache:'no-store'});
+      if(!r.ok) continue;
+      const data = await r.json();
+      if(!Array.isArray(data) || !data.length) continue;
+      return data.map(k => ({
+        t:k[0], o:+k[1], h:+k[2], l:+k[3], c:+k[4], v:+k[5], closed:true
+      }));
+    } catch(e){ /* try next */ }
+  }
+  return null;
+}
+
+function buildWindow(rets, vols, endIdx){
+  const wRets = rets.slice(endIdx-SEQ_WINDOW, endIdx);
+  const wVols = vols.slice(endIdx-SEQ_WINDOW, endIdx);
+  const vmean = wVols.reduce((s,v)=>s+v,0)/wVols.length;
+  const vvar  = wVols.reduce((s,v)=>s+(v-vmean)*(v-vmean),0)/wVols.length;
+  const vstd  = Math.sqrt(vvar) || 1;
+  const win = [];
+  for(let j=0;j<SEQ_WINDOW;j++){
+    win.push([ wRets[j]*RETURN_SCALE, (wVols[j]-vmean)/vstd ]);
+  }
+  return win;
+}
+
+function buildTrainingSet(candles){
+  const closes = candles.map(c=>c.c);
+  const vols   = candles.map(c=>c.v);
+  const rets = [];
+  for(let i=1;i<closes.length;i++) rets.push((closes[i]-closes[i-1])/closes[i-1]);
+  const volsR = vols.slice(1);
+  const X=[], y=[];
+  for(let i=SEQ_WINDOW; i<rets.length-1; i++){
+    X.push(buildWindow(rets, volsR, i));
+    y.push(Math.max(-1, Math.min(1, rets[i] * RETURN_SCALE)));
+  }
+  return { X, y };
+}
+
+function buildLSTMModel(){
+  const m = tf.sequential();
+  m.add(tf.layers.lstm({units: LSTM_UNITS, inputShape:[SEQ_WINDOW,SEQ_FEATURES], returnSequences:false, recurrentInitializer:'glorotNormal'}));
+  m.add(tf.layers.dropout({rate:0.15}));
+  m.add(tf.layers.dense({units:8, activation:'tanh'}));
+  m.add(tf.layers.dense({units:1, activation:'tanh'}));
+  m.compile({optimizer: tf.train.adam(0.005), loss:'meanSquaredError'});
+  return m;
+}
+function buildGRUModel(){
+  const m = tf.sequential();
+  m.add(tf.layers.gru({units: GRU_UNITS, inputShape:[SEQ_WINDOW,SEQ_FEATURES], returnSequences:false, recurrentInitializer:'glorotNormal'}));
+  m.add(tf.layers.dropout({rate:0.15}));
+  m.add(tf.layers.dense({units:8, activation:'tanh'}));
+  m.add(tf.layers.dense({units:1, activation:'tanh'}));
+  m.compile({optimizer: tf.train.adam(0.005), loss:'meanSquaredError'});
+  return m;
+}
+
+function setModelStatus(name, status, key, params, pct){
+  const slot = state[name];
+  slot.status = status;
+  state.lastStatusMsgKey[name] = key ? {key, params} : null;
+  const badge = document.getElementById(name+'Badge');
+  badge.textContent = t(status);
+  badge.dataset.s = status;
+  if(key){
+    let msg = t(key);
+    if(params) for(const k in params) msg = msg.replace('{'+k+'}', params[k]);
+    document.getElementById(name+'StatusMsg').textContent = msg;
+  }
+  if(pct != null) document.getElementById(name+'Progress').style.width = pct + '%';
+}
+function refreshModelStatusText(){
+  for(const name of ['lstm','gru']){
+    const slot = state[name];
+    const badge = document.getElementById(name+'Badge');
+    if(badge) badge.textContent = t(slot.status || 'idle');
+    const k = state.lastStatusMsgKey[name];
+    if(k){
+      let msg = t(k.key);
+      if(k.params) for(const p in k.params) msg = msg.replace('{'+p+'}', k.params[p]);
+      document.getElementById(name+'StatusMsg').textContent = msg;
+    } else {
+      document.getElementById(name+'StatusMsg').textContent = t('initializing');
+    }
+  }
+}
+
+async function trainModel(name, builder){
+  if(typeof tf === 'undefined'){
+    setModelStatus(name, 'error', 'tfNotLoaded', null, 0); return;
+  }
+  const slot = state[name];
+  setModelStatus(name, 'loading', 'fetchingKlines', null, 5);
+  let candles = state.history.length ? state.history : await fetchHistoricalKlines();
+  if(!candles || candles.length < SEQ_WINDOW+50){
+    setModelStatus(name, 'error', 'fetchFailed', null, 0); return;
+  }
+  if(!state.history.length) state.history = candles.slice();
+
+  setModelStatus(name, 'training', 'preparing', {n: candles.length}, 12);
+  await new Promise(r=>setTimeout(r, 30));
+
+  const { X, y } = buildTrainingSet(candles);
+  slot.samples = X.length;
+  document.getElementById(name+'Samples') && (document.getElementById(name+'Samples').textContent = X.length);
+  if(X.length < 50){ setModelStatus(name, 'error', 'tooFew', null, 0); return; }
+
+  const xs = tf.tensor3d(X);
+  const ys = tf.tensor2d(y, [y.length, 1]);
+  const model = builder();
+  slot.lossHistory = [];
+
+  await model.fit(xs, ys, {
+    epochs: TRAIN_EPOCHS, batchSize: TRAIN_BATCH,
+    shuffle: true, validationSplit: 0.1,
+    callbacks: {
+      onEpochEnd: async (epoch, logs) => {
+        slot.loss = logs.loss;
+        slot.lossHistory.push({ epoch: epoch+1, loss: logs.loss, valLoss: logs.val_loss });
+        const pct = 15 + Math.round(((epoch+1)/TRAIN_EPOCHS) * 80);
+        // status msg format: "Epoch X/Y · loss Z"
+        const lossStr = logs.loss.toFixed(5) + (logs.val_loss!=null ? ` · val ${logs.val_loss.toFixed(5)}` : '');
+        setModelStatus(name, 'training', null, null, pct);
+        document.getElementById(name+'StatusMsg').textContent =
+          `${t('epoch')} ${epoch+1}/${TRAIN_EPOCHS} · ${t('trainLoss')} ${lossStr}`;
+        document.getElementById(name+'Loss').textContent = logs.loss.toFixed(5);
+        updateLossChart();
+        await tf.nextFrame();
+      }
+    }
+  });
+
+  xs.dispose(); ys.dispose();
+  slot.model = model;
+  // final status
+  state.lastStatusMsgKey[name] = null;
+  setModelStatus(name, 'ready', null, null, 100);
+  document.getElementById(name+'StatusMsg').textContent =
+    `${t('trained')} · ${t('trainLoss')} ${slot.loss.toFixed(5)} · ${X.length} ${t('samplesLc')}`;
+  predictModel(name);
+}
+
+function predictModel(name){
+  const slot = state[name];
+  const h = state.history;
+  if(!slot.model || h.length < SEQ_WINDOW+1) return;
+  const closes = h.map(c=>c.c);
+  const vols   = h.map(c=>c.v);
+  const rets = [];
+  for(let i=1;i<closes.length;i++) rets.push((closes[i]-closes[i-1])/closes[i-1]);
+  const volsR = vols.slice(1);
+  const win = buildWindow(rets, volsR, rets.length);
+
+  const t0 = performance.now();
+  const out = tf.tidy(()=>{
+    const x = tf.tensor3d([win]);
+    return slot.model.predict(x).dataSync();
+  });
+  slot.inferenceMs = performance.now() - t0;
+  slot.prediction  = out[0];
+  renderModelMetrics(name);
+}
+
+function renderModelMetrics(name){
+  const slot = state[name];
+  const p = slot.prediction;
+  const pe = document.getElementById(name+'Prediction');
+  pe.textContent = (p>=0?'+':'') + p.toFixed(3);
+  pe.style.color = p > 0.05 ? 'var(--green)' : p < -0.05 ? 'var(--red)' : 'var(--muted)';
+  document.getElementById(name+'InfMs').textContent = slot.inferenceMs ? slot.inferenceMs.toFixed(1)+' ms' : '—';
+  if(slot.loss != null) document.getElementById(name+'Loss').textContent = slot.loss.toFixed(5);
+}
+
+function handleKline(k){
+  const candle = { t:k.t, o:+k.o, h:+k.h, l:+k.l, c:+k.c, v:+k.v, closed:k.x };
+  const h = state.history;
+  if(h.length && h[h.length-1].t === candle.t){
+    h[h.length-1] = candle;
+  } else {
+    h.push(candle);
+    if(h.length > HIST_LIMIT+200) h.shift();
+  }
+  if(candle.closed){
+    if(state.lstm.model) predictModel('lstm');
+    if(state.gru.model)  predictModel('gru');
+  }
 }
 
 // ============ News + Sentiment ============
@@ -544,7 +968,6 @@ async function fetchNews(){
       }catch(e){ /* try next */ }
     }
   }
-  // fallback
   newsItems = MOCK_NEWS.map(n=>({ ...n, sentiment: scoreHeadline(n.title) }));
   renderNews(); updateSentiment();
 }
@@ -555,9 +978,8 @@ function updateSentiment(){
   let num=0, den=0;
   for(const n of newsItems){
     const ageMin = (now - n.time)/60000;
-    const w = Math.exp(-Math.max(0,ageMin)/120);   // ~2h half-life
-    num += n.sentiment * w;
-    den += w;
+    const w = Math.exp(-Math.max(0,ageMin)/120);
+    num += n.sentiment * w; den += w;
   }
   state.sentiment = den>0 ? num/den : 0;
   const el = document.getElementById('newsSent');
@@ -571,12 +993,12 @@ function renderNews(){
   const list = document.getElementById('newsList');
   document.getElementById('newsCount').textContent = '· '+newsItems.length;
   if(!newsItems.length){
-    list.innerHTML = '<div style="color:var(--muted); font-size:11px; padding:8px 0;">No headlines</div>';
+    list.innerHTML = `<div style="color:var(--muted); font-size:11px; padding:8px 0;">${t('noHeadlines')}</div>`;
     return;
   }
   list.innerHTML = newsItems.slice(0,25).map(n=>{
     const cls = n.sentiment>0.05 ? 'pos' : n.sentiment<-0.05 ? 'neg' : 'neu';
-    const lbl = n.sentiment>0.05 ? 'BULL' : n.sentiment<-0.05 ? 'BEAR' : 'NEU';
+    const lbl = n.sentiment>0.05 ? t('bull') : n.sentiment<-0.05 ? t('bear') : t('neu');
     return `<div class="news-item">
       <div class="news-title">${escapeHtml(n.title)}</div>
       <div class="news-meta"><span>${humanAgo(n.time)}</span><span class="sent ${cls}">${lbl} ${n.sentiment.toFixed(2)}</span></div>
@@ -601,18 +1023,19 @@ function buildAgentGrid(){
 }
 function showTT(e, a){
   const el = document.getElementById('tt');
-  const posLbl = a.position===1?'LONG':a.position===-1?'SHORT':'FLAT';
+  const posLbl = a.position===1?t('long'):a.position===-1?t('short'):t('flat');
   const posCol = a.position===1?'var(--green)':a.position===-1?'var(--red)':'var(--muted)';
   const pnlCol = a.pnl>=0?'var(--green)':'var(--red)';
   el.innerHTML = `
     <div style="font-weight:700; margin-bottom:6px; color:var(--accent);">Agent #${a.id}</div>
-    <div>Position: <span style="color:${posCol}; font-weight:600;">${posLbl}</span></div>
-    <div>Signal: <span style="font-weight:600;">${a.lastSignal.toFixed(3)}</span></div>
-    <div>P&amp;L: <span style="color:${pnlCol}; font-weight:600;">${a.pnl>=0?'+':''}$${a.pnl.toFixed(2)}</span></div>
-    <div>Trades: ${a.trades} · ${a.trades?((a.wins/a.trades*100).toFixed(0)):0}% win</div>
+    <div>${t('position')}: <span style="color:${posCol}; font-weight:600;">${posLbl}</span></div>
+    <div>${t('signal')}: <span style="font-weight:600;">${a.lastSignal.toFixed(3)}</span></div>
+    <div>${t('pnl')}: <span style="color:${pnlCol}; font-weight:600;">${a.pnl>=0?'+':''}$${a.pnl.toFixed(2)}</span></div>
+    <div>${t('tradesCount')}: ${a.trades} · ${a.trades?((a.wins/a.trades*100).toFixed(0)):0}% ${t('win')}</div>
     <div style="color:var(--muted); font-size:10px; margin-top:6px; line-height:1.5;">
       w: ema=${a.w.emaCross.toFixed(2)} · rsi=${a.w.rsi.toFixed(2)}<br>
-      mom=${a.w.mom1.toFixed(2)} · vol=${a.w.vol.toFixed(2)} · sent=${a.w.sent.toFixed(2)}
+      mom=${a.w.mom1.toFixed(2)} · vol=${a.w.vol.toFixed(2)} · sent=${a.w.sent.toFixed(2)}<br>
+      lstm=${a.w.lstmPred.toFixed(2)} · gru=${a.w.gruPred.toFixed(2)}
     </div>`;
   el.style.display='block';
   moveTT(e);
@@ -630,12 +1053,12 @@ function renderAgents(){
   const tiles = document.querySelectorAll('.agent');
   for(let i=0;i<state.agents.length;i++){
     const a = state.agents[i];
-    const t = tiles[i];
+    const tile = tiles[i];
     const cls = a.position===1?'long':a.position===-1?'short':'flat';
-    if(!t.classList.contains(cls)){
-      t.className = 'agent ' + cls;
+    if(!tile.classList.contains(cls)){
+      tile.className = 'agent ' + cls;
     }
-    t.querySelector('.pnl').textContent = (a.pnl>=0?'+':'') + a.pnl.toFixed(0);
+    tile.querySelector('.pnl').textContent = (a.pnl>=0?'+':'') + a.pnl.toFixed(0);
   }
 }
 
@@ -669,14 +1092,14 @@ function renderLeaderboard(){
 function renderConsensus(){
   if(!state.aggregate) return;
   const { longC, shortC, flatC, mean } = state.aggregate;
-  let label='HOLD', color='var(--amber)';
-  if(mean >  0.15){ label='BUY';  color='var(--green)'; }
-  else if(mean < -0.15){ label='SELL'; color='var(--red)'; }
+  let label = t('hold'), color='var(--amber)';
+  if(mean >  0.15){ label=t('buy');  color='var(--green)'; }
+  else if(mean < -0.15){ label=t('sell'); color='var(--red)'; }
   const cs = document.getElementById('consensusSignal');
   cs.textContent = label;
   cs.style.color = color;
   document.getElementById('consensusDesc').textContent =
-    `Score ${mean.toFixed(3)}  ·  ${longC}L / ${flatC}F / ${shortC}S`;
+    `${t('score')} ${mean.toFixed(3)}  ·  ${longC}L / ${flatC}F / ${shortC}S`;
   document.getElementById('lLong').textContent  = longC;
   document.getElementById('lFlat').textContent  = flatC;
   document.getElementById('lShort').textContent = shortC;
@@ -686,7 +1109,7 @@ function renderConsensus(){
 }
 
 // ============ Charts ============
-let priceChart, signalChart;
+let priceChart, signalChart, lossChart;
 function initCharts(){
   const baseOpts = {
     responsive:true, maintainAspectRatio:false, animation:false,
@@ -719,12 +1142,49 @@ function initCharts(){
         y:{...baseOpts.scales.y, min:-1, max:1,
            ticks:{...baseOpts.scales.y.ticks, callback:v=>v.toFixed(2)}}}}
   });
+  lossChart = new Chart(document.getElementById('lossChart').getContext('2d'), {
+    type:'line',
+    data:{labels:[], datasets:[
+      {label:'LSTM', data:[], borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,0.10)', pointRadius:2.5, pointBackgroundColor:'#06b6d4', borderWidth:1.6, tension:0.2, fill:false},
+      {label:'GRU',  data:[], borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,0.10)', pointRadius:2.5, pointBackgroundColor:'#a855f7', borderWidth:1.6, tension:0.2, fill:false},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{
+        legend:{display:true, position:'top', align:'end', labels:{color:'#7a8599', font:{family:'monospace', size:9}, boxWidth:10, boxHeight:2, padding:6}},
+        tooltip:{backgroundColor:'#11161f', borderColor:'#1f2733', borderWidth:1, titleColor:'#cdd6f4', bodyColor:'#cdd6f4',
+          callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(5)}` }}
+      },
+      scales:{
+        x:{
+          title:{display:true, text:t('epochLabel'), color:'#7a8599', font:{family:'monospace', size:9}},
+          grid:{color:'#161c27'}, ticks:{color:'#7a8599', font:{family:'monospace', size:9}}
+        },
+        y:{
+          grid:{color:'#161c27'}, ticks:{color:'#7a8599', font:{family:'monospace', size:9}, callback:v=>v.toFixed(4)},
+        }
+      }
+    }
+  });
+}
+
+function updateLossChart(){
+  if(!lossChart) return;
+  const lstmH = state.lstm.lossHistory;
+  const gruH  = state.gru.lossHistory;
+  const maxEp = Math.max(lstmH.length, gruH.length, TRAIN_EPOCHS);
+  const labels = [];
+  for(let i=1;i<=maxEp;i++) labels.push(i);
+  lossChart.data.labels = labels;
+  lossChart.data.datasets[0].data = lstmH.map(h=>h.loss);
+  lossChart.data.datasets[1].data = gruH.map(h=>h.loss);
+  lossChart.update('none');
 }
 
 function refreshCharts(){
   const pts = state.prices.slice(-120);
   if(pts.length){
-    priceChart.data.labels = pts.map(()=>'')
+    priceChart.data.labels = pts.map(()=>'');
     priceChart.data.datasets[0].data = pts;
     let e9=null, e21=null; const e9s=[], e21s=[];
     for(const p of pts){
@@ -737,7 +1197,7 @@ function refreshCharts(){
     priceChart.update('none');
   }
   const sig = state.consensusSeries;
-  signalChart.data.labels = sig.map(()=>'')
+  signalChart.data.labels = sig.map(()=>'');
   signalChart.data.datasets[0].data = sig.map(s=>s.v);
   signalChart.update('none');
 }
@@ -753,15 +1213,41 @@ function tick(){
 }
 
 // ============ Init ============
+async function trainBothModels(){
+  try{
+    await trainModel('lstm', buildLSTMModel);
+  }catch(e){
+    console.error(e);
+    setModelStatus('lstm', 'error', 'trainingFailed', null, 0);
+  }
+  // briefly show GRU "waiting" → then train
+  state.lastStatusMsgKey.gru = { key:'waiting', params:null };
+  document.getElementById('gruStatusMsg').textContent = t('waiting');
+  try{
+    await trainModel('gru', buildGRUModel);
+  }catch(e){
+    console.error(e);
+    setModelStatus('gru', 'error', 'trainingFailed', null, 0);
+  }
+}
+
 function init(){
+  // set initial language
+  applyI18N();
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.addEventListener('click', ()=> setLang(b.dataset.lang));
+  });
+
   initAgents();
   buildAgentGrid();
   initCharts();
   connectWS();
   fetchNews();
-  setInterval(fetchNews, 5*60*1000);                 // refresh news every 5 min
+  trainBothModels();
+
+  setInterval(fetchNews, 5*60*1000);
   setInterval(()=>{ if(newsItems.length) renderNews(); updateSentiment(); }, 30000);
-  setInterval(tick, 1000);                            // 1Hz agent step + render
+  setInterval(tick, 1000);
 }
 init();
 </script>

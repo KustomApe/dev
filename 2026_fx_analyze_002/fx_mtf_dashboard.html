@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FX マルチタイムフレーム分析ダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #21262d;
+    --border: #30363d; --text: #e6edf3; --text2: #8b949e;
+    --up: #3fb950; --down: #f85149; --neutral: #8b949e;
+    --accent: #58a6ff; --warn: #d29922;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', monospace; min-height: 100vh; }
+
+  header {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+  }
+  header h1 { font-size: 18px; color: var(--accent); }
+  header .meta { font-size: 12px; color: var(--text2); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .live { background: var(--up); animation: pulse 2s infinite; }
+  .demo { background: var(--warn); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .controls {
+    padding: 12px 24px; background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .controls label { font-size: 13px; color: var(--text2); }
+  .filter-btn {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 12px;
+    transition: all .2s;
+  }
+  .filter-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding: 20px 24px; }
+
+  .card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; transition: transform .15s, border-color .15s;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card.up   { border-left: 3px solid var(--up); }
+  .card.down { border-left: 3px solid var(--down); }
+  .card.neutral { border-left: 3px solid var(--neutral); }
+
+  .card-header {
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .symbol-name { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+  .symbol-price { font-size: 13px; color: var(--text2); font-family: monospace; }
+  .direction-badge {
+    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  }
+  .badge-up   { background: rgba(63,185,80,.15); color: var(--up); }
+  .badge-down { background: rgba(248,81,73,.15);  color: var(--down); }
+  .badge-neutral { background: rgba(139,148,158,.15); color: var(--neutral); }
+
+  .alignment-bar { height: 4px; background: var(--bg3); position: relative; }
+  .alignment-fill { height: 100%; transition: width .5s; }
+  .fill-up   { background: var(--up); }
+  .fill-down { background: var(--down); }
+  .fill-neutral { background: var(--neutral); }
+
+  .tf-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 12px 16px; gap: 8px;
+  }
+  .tf-cell { text-align: center; }
+  .tf-label { font-size: 10px; color: var(--text2); margin-bottom: 4px; }
+  .tf-icon { font-size: 20px; margin-bottom: 2px; }
+  .tf-rsi { font-size: 10px; color: var(--text2); }
+  .tf-detail { font-size: 10px; margin-top: 2px; }
+  .tf-up   { color: var(--up); }
+  .tf-down { color: var(--down); }
+  .tf-neutral { color: var(--neutral); }
+
+  .card-footer {
+    padding: 8px 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; font-size: 11px; color: var(--text2);
+  }
+
+  /* サマリーパネル */
+  .summary {
+    margin: 0 24px 8px; padding: 14px 20px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .summary-item { text-align: center; }
+  .summary-num { font-size: 28px; font-weight: 700; }
+  .summary-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .num-up { color: var(--up); }
+  .num-down { color: var(--down); }
+  .num-neutral { color: var(--neutral); }
+
+  .refresh-btn {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text); cursor: pointer; font-size: 13px;
+  }
+  .refresh-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  #countdown { font-size: 12px; color: var(--text2); }
+
+  .demo-banner {
+    margin: 12px 24px; padding: 10px 16px;
+    background: rgba(210,153,34,.1); border: 1px solid var(--warn);
+    border-radius: 6px; font-size: 13px; color: var(--warn);
+  }
+
+  /* フィルターで非表示 */
+  .card.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📊 FX マルチタイムフレーム分析</h1>
+    <div class="meta">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">読み込み中...</span>
+      &nbsp;｜&nbsp;最終更新: <span id="updatedAt">--</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span id="countdown"></span>
+    <button class="refresh-btn" onclick="loadData()">🔄 更新</button>
+  </div>
+</header>
+
+<div id="demoBanner" class="demo-banner" style="display:none">
+  ⚠️ デモモード: MT5が接続されていません。fx_mt5_connector.py を実行するとリアルタイムデータに切り替わります。
+</div>
+
+<div class="controls">
+  <label>フィルター:</label>
+  <button class="filter-btn active" onclick="setFilter('ALL', this)">全て</button>
+  <button class="filter-btn" onclick="setFilter('UP', this)">▲ 上昇</button>
+  <button class="filter-btn" onclick="setFilter('DOWN', this)">▼ 下降</button>
+  <button class="filter-btn" onclick="setFilter('NEUTRAL', this)">─ 中立</button>
+  <button class="filter-btn" onclick="setFilter('ALIGN', this)">⭐ 高一致のみ</button>
+</div>
+
+<div class="summary" id="summary"></div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+// ─── デモデータ (MT5コネクター未接続時) ───────────────────────────
+const DEMO_DATA = {
+  updated_at: new Date().toLocaleString('ja-JP'),
+  is_demo: true,
+  symbols: [
+    {symbol:"USDJPY", current_price:149.852, primary_direction:"UP", alignment:75,
+     timeframes:{
+       M15:{direction:"UP",  strength:60, rsi:58.2, overheat:"中立", atr:0.012},
+       H1: {direction:"UP",  strength:72, rsi:62.5, overheat:"中立", atr:0.028},
+       H4: {direction:"UP",  strength:81, rsi:66.1, overheat:"中立", atr:0.055},
+       D1: {direction:"NEUTRAL",strength:5,rsi:55.0,overheat:"中立", atr:0.110},
+     }},
+    {symbol:"EURUSD", current_price:1.08724, primary_direction:"DOWN", alignment:100,
+     timeframes:{
+       M15:{direction:"DOWN",strength:55,rsi:42.1,overheat:"中立", atr:0.00045},
+       H1: {direction:"DOWN",strength:63,rsi:38.7,overheat:"中立", atr:0.00098},
+       H4: {direction:"DOWN",strength:71,rsi:34.2,overheat:"過売り",atr:0.00210},
+       D1: {direction:"DOWN",strength:80,rsi:29.5,overheat:"過売り",atr:0.00420},
+     }},
+    {symbol:"GBPUSD", current_price:1.26541, primary_direction:"UP", alignment:50,
+     timeframes:{
+       M15:{direction:"UP",  strength:44,rsi:55.0,overheat:"中立", atr:0.00052},
+       H1: {direction:"UP",  strength:51,rsi:57.3,overheat:"中立", atr:0.00115},
+       H4: {direction:"DOWN",strength:38,rsi:47.8,overheat:"中立", atr:0.00245},
+       D1: {direction:"DOWN",strength:42,rsi:44.2,overheat:"中立", atr:0.00510},
+     }},
+    {symbol:"AUDUSD", current_price:0.65213, primary_direction:"DOWN", alignment:75,
+     timeframes:{
+       M15:{direction:"DOWN",strength:65,rsi:38.5,overheat:"中立", atr:0.00038},
+       H1: {direction:"DOWN",strength:70,rsi:36.2,overheat:"中立", atr:0.00082},
+       H4: {direction:"NEUTRAL",strength:5,rsi:50.1,overheat:"中立",atr:0.00175},
+       D1: {direction:"DOWN",strength:78,rsi:32.0,overheat:"過売り",atr:0.00360},
+     }},
+    {symbol:"USDCAD", current_price:1.36124, primary_direction:"UP", alignment:100,
+     timeframes:{
+       M15:{direction:"UP",strength:58,rsi:61.2,overheat:"中立", atr:0.00042},
+       H1: {direction:"UP",strength:64,rsi:63.5,overheat:"中立", atr:0.00095},
+       H4: {direction:"UP",strength:75,rsi:67.8,overheat:"中立", atr:0.00200},
+       D1: {direction:"UP",strength:82,rsi:71.2,overheat:"過買い",atr:0.00415},
+     }},
+    {symbol:"NZDUSD", current_price:0.59872, primary_direction:"NEUTRAL", alignment:25,
+     timeframes:{
+       M15:{direction:"UP",  strength:30,rsi:52.0,overheat:"中立",atr:0.00035},
+       H1: {direction:"DOWN",strength:25,rsi:48.5,overheat:"中立",atr:0.00078},
+       H4: {direction:"DOWN",strength:28,rsi:46.2,overheat:"中立",atr:0.00165},
+       D1: {direction:"UP",  strength:22,rsi:53.1,overheat:"中立",atr:0.00340},
+     }},
+    {symbol:"USDCHF", current_price:0.89341, primary_direction:"UP", alignment:75,
+     timeframes:{
+       M15:{direction:"UP",strength:52,rsi:59.8,overheat:"中立",atr:0.00040},
+       H1: {direction:"UP",strength:60,rsi:62.1,overheat:"中立",atr:0.00088},
+       H4: {direction:"UP",strength:68,rsi:64.5,overheat:"中立",atr:0.00188},
+       D1: {direction:"NEUTRAL",strength:8,rsi:51.2,overheat:"中立",atr:0.00390},
+     }},
+    {symbol:"EURJPY", current_price:162.735, primary_direction:"DOWN", alignment:75,
+     timeframes:{
+       M15:{direction:"DOWN",strength:61,rsi:40.2,overheat:"中立", atr:0.015},
+       H1: {direction:"DOWN",strength:69,rsi:37.8,overheat:"中立", atr:0.033},
+       H4: {direction:"DOWN",strength:74,rsi:33.5,overheat:"過売り",atr:0.072},
+       D1: {direction:"NEUTRAL",strength:10,rsi:49.0,overheat:"中立",atr:0.148},
+     }},
+  ]
+};
+
+// ─── 状態 ────────────────────────────────────────────────────────────
+let currentFilter = 'ALL';
+let countdownSec = 60;
+let timerInterval;
+
+// ─── データ読み込み ──────────────────────────────────────────────────
+async function loadData() {
+  let data;
+  try {
+    // fx_mt5_connector.py が生成するJSONを読み込む
+    const res = await fetch('fx_mtf_data.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('not found');
+    data = await res.json();
+  } catch {
+    // フォールバック: デモデータ
+    data = DEMO_DATA;
+    data.updated_at = new Date().toLocaleString('ja-JP');
+  }
+
+  renderDashboard(data);
+  resetCountdown();
+}
+
+// ─── レンダリング ────────────────────────────────────────────────────
+function renderDashboard(data) {
+  // ステータス
+  const dot = document.getElementById('statusDot');
+  const st  = document.getElementById('statusText');
+  const banner = document.getElementById('demoBanner');
+  if (data.is_demo) {
+    dot.className = 'status-dot demo';
+    st.textContent = 'デモモード';
+    banner.style.display = 'block';
+  } else {
+    dot.className = 'status-dot live';
+    st.textContent = 'MT5 接続中';
+    banner.style.display = 'none';
+  }
+  document.getElementById('updatedAt').textContent = data.updated_at;
+
+  renderSummary(data.symbols);
+  renderCards(data.symbols);
+}
+
+function renderSummary(symbols) {
+  const up      = symbols.filter(s => s.primary_direction === 'UP').length;
+  const down    = symbols.filter(s => s.primary_direction === 'DOWN').length;
+  const neutral = symbols.filter(s => s.primary_direction === 'NEUTRAL').length;
+  const highAlign = symbols.filter(s => s.alignment >= 75).length;
+
+  document.getElementById('summary').innerHTML = `
+    <div class="summary-item">
+      <div class="summary-num num-up">▲ ${up}</div>
+      <div class="summary-label">上昇トレンド</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num num-down">▼ ${down}</div>
+      <div class="summary-label">下降トレンド</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num num-neutral">─ ${neutral}</div>
+      <div class="summary-label">中立</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num" style="color:var(--accent)">⭐ ${highAlign}</div>
+      <div class="summary-label">高一致 (75%+)</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num" style="color:var(--text)">${symbols.length}</div>
+      <div class="summary-label">監視ペア数</div>
+    </div>
+  `;
+}
+
+function dirClass(dir) {
+  return dir === 'UP' ? 'up' : dir === 'DOWN' ? 'down' : 'neutral';
+}
+function dirIcon(dir) {
+  return dir === 'UP' ? '▲' : dir === 'DOWN' ? '▼' : '─';
+}
+function badgeClass(dir) {
+  return dir === 'UP' ? 'badge-up' : dir === 'DOWN' ? 'badge-down' : 'badge-neutral';
+}
+
+function renderCards(symbols) {
+  const sorted = [...symbols].sort((a, b) => b.alignment - a.alignment);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = sorted.map(sym => {
+    const dc = dirClass(sym.primary_direction);
+    const tfs = ['M15','H1','H4','D1'].map(tf => {
+      const d = sym.timeframes[tf] || {};
+      const c = dirClass(d.direction || 'NEUTRAL');
+      return `
+        <div class="tf-cell">
+          <div class="tf-label">${tf}</div>
+          <div class="tf-icon tf-${c}">${dirIcon(d.direction || 'NEUTRAL')}</div>
+          <div class="tf-rsi">RSI ${d.rsi ?? '--'}</div>
+          <div class="tf-detail tf-${c}">${d.overheat || ''}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="card ${dc}" data-dir="${sym.primary_direction}" data-align="${sym.alignment}">
+        <div class="card-header">
+          <div>
+            <div class="symbol-name">${sym.symbol}</div>
+            <div class="symbol-price">${sym.current_price}</div>
+          </div>
+          <span class="direction-badge ${badgeClass(sym.primary_direction)}">
+            ${dirIcon(sym.primary_direction)} ${sym.primary_direction}
+          </span>
+        </div>
+        <div class="alignment-bar">
+          <div class="alignment-fill fill-${dc}" style="width:${sym.alignment}%"></div>
+        </div>
+        <div class="tf-grid">${tfs}</div>
+        <div class="card-footer">
+          <span>タイムフレーム一致度</span>
+          <span style="color:${sym.alignment>=75?'var(--up)':sym.alignment>=50?'var(--warn)':'var(--down)'}">
+            ${sym.alignment}%
+          </span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  applyFilter();
+}
+
+// ─── フィルター ──────────────────────────────────────────────────────
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  document.querySelectorAll('.card').forEach(card => {
+    const dir   = card.dataset.dir;
+    const align = parseInt(card.dataset.align);
+    let show = true;
+    if (currentFilter === 'UP')      show = dir === 'UP';
+    else if (currentFilter === 'DOWN')  show = dir === 'DOWN';
+    else if (currentFilter === 'NEUTRAL') show = dir === 'NEUTRAL';
+    else if (currentFilter === 'ALIGN')  show = align >= 75;
+    card.classList.toggle('hidden', !show);
+  });
+}
+
+// ─── カウントダウン ──────────────────────────────────────────────────
+function resetCountdown() {
+  countdownSec = 60;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    countdownSec--;
+    document.getElementById('countdown').textContent = `次の更新まで ${countdownSec}秒`;
+    if (countdownSec <= 0) {
+      loadData();
+    }
+  }, 1000);
+}
+
+// ─── 初期化 ──────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
