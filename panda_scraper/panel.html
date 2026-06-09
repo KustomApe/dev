@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panda Scraper</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🐼</span>
+      <span class="logo-text">Panda Scraper</span>
+    </div>
+    <div class="page-info" id="pageInfo">—</div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="inspector">Inspector</button>
+    <button class="tab" data-tab="rules">Rules</button>
+    <button class="tab" data-tab="data">Data</button>
+  </nav>
+
+  <!-- ── Inspector Tab ──────────────────────────────────────── -->
+  <section class="tab-content active" id="tab-inspector">
+
+    <div class="toolbar">
+      <button id="btnInspect" class="btn btn-primary" title="Click elements on the page to select them (Esc to stop)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Inspect
+      </button>
+      <button id="btnSelectAll" class="btn btn-ghost" title="Select all elements matching the first selected element's selector">Select Similar</button>
+      <button id="btnClear" class="btn btn-ghost" title="Clear selection">Clear</button>
+    </div>
+
+    <!-- Selector bar -->
+    <div class="selector-bar" id="selectorBar" style="display:none">
+      <label class="small-label">CSS Selector</label>
+      <div class="selector-row">
+        <input id="selectorInput" class="selector-input" type="text" spellcheck="false" placeholder=".class > tag" />
+        <button id="btnApplySelector" class="btn btn-sm btn-ghost">Apply</button>
+        <button id="btnHighlight" class="btn btn-sm btn-ghost" title="Flash matching elements">Flash</button>
+      </div>
+      <div class="selector-meta" id="selectorMeta"></div>
+
+      <label class="small-label" style="margin-top:8px">XPath</label>
+      <input id="xpathInput" class="selector-input" type="text" spellcheck="false" readonly />
+    </div>
+
+    <!-- Selected elements list -->
+    <div class="section-header" id="selectionHeader" style="display:none">
+      <span id="selectionCount">0 elements selected</span>
+    </div>
+    <div id="elementList" class="element-list"></div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🎯</div>
+      <p>Click <strong>Inspect</strong> then click any element<br>on the page to select it.</p>
+    </div>
+  </section>
+
+  <!-- ── Rules Tab ──────────────────────────────────────────── -->
+  <section class="tab-content" id="tab-rules">
+    <div class="toolbar">
+      <button id="btnAddRule" class="btn btn-primary">+ Add Rule</button>
+      <button id="btnSaveTemplate" class="btn btn-ghost" title="Save current selection as a template">Save Template</button>
+    </div>
+
+    <div id="rulesList" class="rules-list"></div>
+
+    <div class="empty-state" id="rulesEmpty">
+      <div class="empty-icon">📋</div>
+      <p>No rules yet.<br>Add a rule to define what to extract.</p>
+    </div>
+
+    <!-- Rule editor (hidden by default) -->
+    <div class="rule-editor card" id="ruleEditor" style="display:none">
+      <h3 id="ruleEditorTitle">New Rule</h3>
+      <label class="field-label">Name
+        <input id="ruleName" type="text" class="field-input" placeholder="e.g. Product titles" />
+      </label>
+      <label class="field-label">CSS Selector
+        <input id="ruleSelector" type="text" class="field-input" spellcheck="false" placeholder=".product-title" />
+      </label>
+      <label class="field-label">Extract fields</label>
+      <div class="fields-grid">
+        <label class="checkbox-label"><input type="checkbox" value="text" checked /> Text</label>
+        <label class="checkbox-label"><input type="checkbox" value="html" /> HTML</label>
+        <label class="checkbox-label"><input type="checkbox" value="href" /> href</label>
+        <label class="checkbox-label"><input type="checkbox" value="src" /> src</label>
+        <label class="checkbox-label"><input type="checkbox" value="@id" /> id attr</label>
+        <label class="checkbox-label"><input type="checkbox" value="@class" /> class attr</label>
+      </div>
+      <label class="field-label">Custom attribute <span class="hint">(e.g. @data-id)</span>
+        <input id="ruleCustomAttr" type="text" class="field-input" placeholder="@data-price" />
+      </label>
+      <div class="rule-editor-actions">
+        <button id="btnRuleCancel" class="btn btn-ghost">Cancel</button>
+        <button id="btnRuleSave" class="btn btn-primary">Save Rule</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Data Tab ───────────────────────────────────────────── -->
+  <section class="tab-content" id="tab-data">
+    <div class="toolbar">
+      <button id="btnRunAll" class="btn btn-primary">▶ Run All Rules</button>
+      <button id="btnExportJSON" class="btn btn-ghost">Export JSON</button>
+      <button id="btnExportCSV" class="btn btn-ghost">Export CSV</button>
+      <button id="btnCopyData" class="btn btn-ghost">Copy</button>
+    </div>
+
+    <div id="dataResults" class="data-results"></div>
+    <div class="empty-state" id="dataEmpty">
+      <div class="empty-icon">📊</div>
+      <p>Run your rules to see extracted data here.</p>
+    </div>
+  </section>
+
+  <script src="panel.js"></script>
+</body>
+</html>
