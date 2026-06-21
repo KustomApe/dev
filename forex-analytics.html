@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Pro Analytics | Trading Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lightweight Charts (TradingView) -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #131722;
+            --panel-bg: #1e222d;
+            --text-main: #d1d4dc;
+            --text-dim: #787b86;
+            --buy-color: #00b3a6;
+            --sell-color: #ff6a55;
+            --accent: #2962ff;
+        }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; overflow: hidden; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #434651; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #585a68; }
+
+        .panel { background-color: var(--panel-bg); border: 1px solid #2a2e39; border-radius: 6px; overflow: hidden; }
+        .pair-item { border-bottom: 1px solid #2a2e39; transition: all 0.2s; cursor: pointer; }
+        .pair-item:hover, .pair-item.active { background-color: #2a2e39; border-left: 4px solid var(--accent); }
+        .text-buy { color: var(--buy-color); }
+        .text-sell { color: var(--sell-color); }
+        .badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; font-weight: bold; text-transform: uppercase; }
+        .badge-buy { background: rgba(0,179,166,0.15); color: var(--buy-color); }
+        .badge-sell { background: rgba(255,106,85,0.15); color: var(--sell-color); }
+        .badge-neutral { background: rgba(120,123,134,0.15); color: var(--text-dim); }
+
+        #chart-container { position: relative; width: 100%; height: 600px; }
+        #rsi-chart { position: relative; width: 100%; height: 150px; margin-top: 10px; }
+        
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -5px; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #434651; border-radius: 2px; }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="w-72 flex flex-col border-r border-gray-800">
+        <div class="h-16 flex items-center px-6 font-bold text-xl tracking-tight border-b border-gray-800 bg-[#1e222d]">
+            <i class="fa-solid fa-chart-line text-blue-500 mr-3"></i> FX Analytics
+        </div>
+        
+        <div class="p-4">
+            <div class="text-xs font-bold text-gray-500 uppercase mb-2">Market Watch</div>
+            <div id="watchlist" class="flex flex-col gap-1 max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
+                <!-- Pairs injected via JS -->
+            </div>
+
+            <div class="mt-8 text-xs font-bold text-gray-500 uppercase mb-2">Account Status</div>
+            <div class="bg-[#131722] p-3 rounded border border-gray-700">
+                <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Balance:</span> <span class="font-mono">$50,000.00</span></div>
+                <div class="flex justify-between text-sm mb-1"><span class="text-gray-400">Equity:</span> <span class="font-mono">$50,423.19</span></div>
+                <div class="flex justify-between text-sm"><span class="text-gray-400">P&L:</span> <span class="text-buy font-bold">+$423.19 (+0.8%)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- HEADER -->
+        <div class="h-16 border-b border-gray-700 bg-[#1e222d] flex items-center justify-between px-6">
+            <div class="flex items-center gap-4">
+                <h1 id="current-pair" class="text-2xl font-bold text-white">EUR/USD</h1>
+                <span id="current-price" class="text-xl font-mono font-bold text-buy animate-pulse">Loading...</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex bg-gray-800 rounded p-1">
+                    <button onclick="setIntervalMs(60000)" class="px-3 py-1 text-xs hover:bg-gray-700 rounded text-gray-400 focus:text-white bg-gray-600 text-white">1m</button>
+                    <button onclick="setIntervalMs(60000*5)" class="px-3 py-1 text-xs hover:bg-gray-700 rounded text-gray-400">5m</button>
+                    <button onclick="setIntervalMs(60000*15)" class="px-3 py-1 text-xs hover:bg-gray-700 rounded text-gray-400">15m</button>
+                    <button onclick="setIntervalMs(60000*60)" class="px-3 py-1 text-xs hover:bg-gray-700 rounded text-gray-400 focus:text-white bg-gray-600 text-white">1H</button>
+                </div>
+                <button class="bg-gray-800 p-2 rounded text-gray-400 hover:text-white"><i class="fa-solid fa-gear"></i></button>
+                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">U</div>
+            </div>
+        </div>
+
+        <!-- SCROLLABLE ANALYTICS AREA -->
+        <div class="flex-1 overflow-y-auto p-6 gap-6 flex" style="height: calc(100vh - 64px);">
+            
+            <!-- CHART PANEL -->
+            <div class="flex-[2] flex flex-col gap-4 min-w-0">
+                <div class="panel relative flex-1 p-2 bg-[#131722] border-0">
+                    <div id="chart-container"></div>
+                </div>
+
+                <!-- TECHNICAL INDICATORS STRIP -->
+                <div class="h-auto grid grid-cols-4 gap-4">
+                    <div class="panel p-4 flex flex-col justify-center">
+                        <div class="text-xs text-gray-500 mb-1">RSI (14)</div>
+                        <div id="val-rsi" class="text-xl font-mono font-bold text-white">--</div>
+                    </div>
+                    <div class="panel p-4 flex flex-col justify-center">
+                        <div class="text-xs text-gray-500 mb-1">SMA (20)</div>
+                        <div id="val-sma" class="text-xl font-mono font-bold text-white">--</div>
+                    </div>
+                    <div class="panel p-4 flex flex-col justify-center">
+                        <div class="text-xs text-gray-500 mb-1">EMA (50)</div>
+                        <div id="val-ema" class="text-xl font-mono font-bold text-white">--</div>
+                    </div>
+                     <div class="panel p-4 flex flex-col justify-center">
+                        <div class="text-xs text-gray-500 mb-1">Volatility (ATR)</div>
+                        <div id="val-atr" class="text-xl font-mono font-bold text-white">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: SIGNALS & ORDER -->
+            <div class="w-80 flex flex-col gap-6">
+                
+                <!-- SIGNAL ENGINE -->
+                <div class="panel p-5 bg-[#131722]">
+                    <div class="flex items-center justify-between mb-4 border-b border-gray-800 pb-2">
+                        <h3 class="font-bold text-white"><i class="fa-solid fa-brain mr-2"></i>Algo Signal</h3>
+                        <span id="signal-timer" class="text-xs text-gray-500 animate-pulse">Analyzing...</span>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center pb-6 border-b border-gray-800 mb-4">
+                        <div id="signal-badge" class="badge badge-neutral w-full py-1 text-center mb-2">WAITING FOR DATA</div>
+                        <div id="signal-strength" class="text-sm font-mono text-gray-300 mt-2">Confidence: 0%</div>
+                    </div>
+
+                    <div class="space-y-3 mb-4">
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Trend</span><span id="sig-trend" class="text-sm font-bold text-white">Neutral</span></div>
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Momentum</span><span id="sig-mom" class="text-sm font-bold text-white">Neutral</span></div>
+                        <div class="flex justify-between items-center"><span class="text-sm text-gray-400">Support</span><span id="sig-sup" class="text-sm font-mono text-blue-400">--</span></div>
+                    </div>
+
+                    <button onclick="simTrade('buy')" class="w-full bg-[#00b3a6]/20 hover:bg-[#00b3a6] border border-[#00b3a6] text-[#00b3a6] font-bold py-3 rounded mb-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed" id="btn-buy" disabled>
+                        BUY <span class="font-mono ml-1">1.0845</span>
+                    </button>
+                     <button onclick="simTrade('sell')" class="w-full bg-[#ff6a55]/20 hover:bg-[#ff6a55] border border-[#ff6a55] text-[#ff6a55] font-bold py-3 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed" id="btn-sell" disabled>
+                        SELL <span class="font-mono ml-1">1.0843</span>
+                    </button>
+                </div>
+
+                <!-- INDICATOR SETTINGS -->
+                <div class="panel p-5 bg-[#1e222d]">
+                     <h3 class="text-sm font-bold text-white mb-3"><i class="fa-solid fa-sliders mr-2"></i>Indicator Settings</h3>
+                     <div class="mb-4">
+                        <label class="text-xs text-gray-500 block mb-1">RSI Sensitivity</label>
+                        <input type="range" min="7" max="21" value="14" step="1" oninput="updateSettings()" id="rsi-period">
+                     </div>
+                      <div class="mb-4">
+                        <label class="text-xs text-gray-500 block mb-1">Chart Opacity</label>
+                        <input type="range" min="40" max="100" value="100" oninput="updateTheme(this.value)" id="chart-opacity">
+                     </div>
+                     <button onclick="regenerateData()" class="w-full text-xs bg-gray-700 hover:bg-gray-600 py-2 rounded text-white">Regenerate Market</button>
+                </div>
+
+                 <!-- RECENT TRADES -->
+                 <div class="panel p-5 bg-[#1e222d] flex-1 overflow-y-auto max-h-[300px]">
+                    <h3 class="text-sm font-bold text-white mb-3">Recent Activity</h3>
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-gray-500 border-b border-gray-800">
+                            <tr><th>Type</th><th>Price</th><th>P/L</th></tr>
+                        </thead>
+                        <tbody id="trade-history">
+                            <!-- Mock history -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- DATA GENERATION ENGINE ---
+const PAIRS = {
+    'EUR/USD': { price: 1.0845, volatility: 0.0005 },
+    'GBP/USD': { price: 1.2630, volatility: 0.0008 },
+    'USD/JPY': { price: 149.50, volatility: 0.05 },
+    'XAU/USD': { price: 2300.50, volatility: 2.5 }, // Gold
+    'BTC/USD': { price: 68400.00, volatility: 150.0 }, // Crypto
+};
+
+let currentPair = 'EUR/USD';
+let intervalMs = 60000; // 1 minute candles for visual density
+let chartData = [];
+let rsiData = [];
+let smaLine = null;
+let emaLine = null;
+let intervalId = null;
+
+// --- MATH HELPERS ---
+function calcRSI(data, period) {
+    let gains = 0, losses = 0;
+    for (let i = 1; i < data.length; i++) {
+        const change = data[i] - data[i-1];
+        if (change >= 0) gains += change;
+        else losses -= change;
+        if (i > period) {
+            const prevGain = (data[i-period+1] - data[i-period]);
+            gains = (gains * (period - 1)) + Math.max(0, prevGain);
+            // Simplified RSI calc for demo
+        }
+    }
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    if (avgLoss === 0) return 100;
+    let rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+}
+
+function calcSMA(data, period) {
+    if (data.length < period) return null;
+    let sum = 0;
+    for(let i = data.length - period; i < data.length; i++) sum += data[i].close;
+    return sum / period;
+}
+
+function generateCandles(count, basePrice, volatility) {
+    const candles = [];
+    let time = new Date();
+    time.setMinutes(time.getMinutes() - count);
+    let prevClose = basePrice;
+
+    for (let i = 0; i < count; i++) {
+        let open = prevClose;
+        // Random walk
+        let change = (Math.random() - 0.5) * volatility * 10; 
+        const close = open + change;
+        const high = Math.max(open, close) + Math.random() * volatility * 2;
+        const low = Math.min(open, close) - Math.random() * volatility * 2;
+        const vol = Math.floor(Math.random() * 1000) + 500;
+
+        candles.push({ time: time.getTime() / 1000, open, high, low, close, volume: vol });
+        prevClose = close;
+        
+        // Advance time by interval (in seconds)
+        time.setMinutes(time.getMinutes() + (intervalMs / 60000)); 
+    }
+    return candles;
+}
+
+function updateAnalysis(data) {
+    if (!data.length) return;
+    const closes = data.map(d => d.close);
+    const lastPrice = closes[closes.length - 1];
+    
+    // Calculate Indicators
+    const rsiPeriod = parseInt(document.getElementById('rsi-period').value);
+    const rsiVal = calcRSI(closes, rsiPeriod).toFixed(2);
+    
+    const smaVal = calcSMA(data, 20);
+    
+    // EMA (Simple approx)
+    let ema = data[data.length -1].close;
+    let mult = 2 / (50 + 1);
+    for(let i = data.length - 60; i < data.length; i++) {
+        if(i >= 0 && data[i]) ema = ((data[i].close - ema) * mult) + ema;
+    }
+
+    // Update UI Numbers
+    document.getElementById('current-price').innerText = lastPrice.toFixed(currentPair.includes('JPY') ? 2 : (currentPair.includes('XAU') || currentPair.includes('BTC') ? 2 : 4));
+    
+    // Color update
+    const prevCandle = data[data.length-2];
+    document.getElementById('current-price').className = `text-xl font-mono font-bold ${prevCandle < lastPrice ? 'text-buy' : 'text-sell'} animate-pulse`;
+
+    document.getElementById('val-rsi').innerText = rsiVal;
+    document.getElementById('val-rsi').style.color = rsiVal > 70 ? '#ff6a55' : (rsiVal < 30 ? '#00b3a6' : '#d1d4dc');
+    
+    document.getElementById('val-sma').innerText = smaVal ? smaVal.toFixed(4) : '--';
+    document.getElementById('val-ema').innerText = ema ? ema.toFixed(4) : '--';
+
+    // Generate Signals
+    const trendEl = document.getElementById('sig-trend');
+    const momEl = document.getElementById('sig-mom');
+    const badge = document.getElementById('signal-badge');
+    
+    let strength = 0;
+    if (lastPrice > smaVal) { strength += 20; trendEl.innerText = 'Bullish 🔼'; trendEl.className='text-sm font-bold text-buy'; }
+    else { strength -= 20; trendEl.innerText = 'Bearish 🔻'; trendEl.className='text-sm font-bold text-sell'; }
+
+    if (rsiVal < 30) momentum = 'Oversold 🟢'; 
+    else if (rsiVal > 70) momentum = 'Overbought 🔴';
+    else momentum = 'Neutral 🟡';
+    
+    momEl.innerText = momentum;
+
+    let signalText = 'NEUTRAL', badgeClass='badge-neutral';
+    
+    // Logic: Buy if price > SMA and RSI < 50 (dip buy) OR strong breakout
+    // Simple algo demo logic
+    if ((lastPrice > smaVal && rsiVal < 65) || rsiVal < 35) { 
+        signalText = 'STRONG BUY 🟢'; 
+        badgeClass='badge-buy'; 
+        strength += 40;
+    } else if ((lastPrice < smaVal && rsiVal > 35) || rsiVal > 65) { 
+        signalText = 'SELL 🔴'; 
+        badgeClass='badge-sell';
+        strength -= 40;
+    }
+
+    document.getElementById('sig-mom').className=`text-sm font-bold ${momentum.includes('🟢')?'text-buy':(momentum.includes('🔴')?'text-sell':'text-white'}`;
+    
+    badge.innerText = signalText;
+    badge.className = `badge ${badgeClass} w-full py-1.5 text-center mb-2 shadow-lg`;
+    
+    document.getElementById('trade-history').innerHTML += `
+        <tr class="border-b border-gray-800"><td class="${badgeClass.replace('bg','text')} py-2">${signalText.split(' ')[0]}</td><td>${lastPrice.toFixed(3)}</td><td>0.00</td></tr>
+    `;
+}
+
+// --- CHARTING & UI ---
+let chart, candleSeries, rsiaSeries;
+
+function initChart() {
+    const container = document.getElementById('chart-container');
+    
+    // Clear existing if any (re-init on reset)
+    if(chart) chart.remove(); 
+
+    chart = LightweightCharts.createChart(container, {
+        layout: { background: { type: "solid", color: "#131722" }, textColor: "#d1d4dc", },
+        grid: { vertLines: { color: "#2a2e39" }, horzLines: { color: "#2a2e39" } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        priceScale: { borderColor: "#485c7b" },
+        timeScale: { borderColor: "#485c7b", timeVisible: true, minutesVisible: true },
+    });
+
+    candleSeries = chart.addCandlestickSeries({
+        upColor: '#00b3a6', downColor: '#ff6a55', borderUpColor: '#00b3a6', borderDownColor: '#ff6a55', wickUpColor: '#00b3a6', wickDownColor: '#ff6a55',
+    });
+
+    rsiaSeries = LightweightCharts.addHistogramSeries(chart, {
+        priceLineVisible: false,
+        lastValueVisible: true, // RSI value on chart
+        color: "#2962ff", 
+        priceFormat: { type: 'percent' }, // Just visual flair
+        priceScaleId: 'rsi',
+    });
+    
+    rsiaSeries.priceScale().applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
+
+    chart.timeScale().fitContent();
+
+    generateDataAndRender(currentPair);
+}
+
+function generateDataAndRender(pairName) {
+    const pData = PAIRS[pairName];
+    document.getElementById('current-pair').innerText = pairName;
+    
+    // Generate 200 candles
+    const rawData = generateCandles(200, pData.price, pData.volatility);
+    
+    // SMA Overlay line (simulated drawing of a moving avg line) - actually in LT4 we use LineSeries for overlays
+    if(smaLine) chart.removeSeries(smaLine);
+    smaLine = chart.addLineSeries({ color: '#f0b90b', lineWidth: 1, lineStyle: 2, crosshairMarkerRadius: 0 });
+    
+    // EMA Overlay
+    if(emaLine) chart.removeSeries(emaLine);
+    emaLine = chart.addLineSeries({ color: '#2962ff', lineWidth: 2, });
+
+    const smaArr = [];
+    for(let i=19; i<rawData.length; i+=20) { // Sample SMA points roughly every 20 candles
+         const slice = rawData.slice(i-19, i+1);
+         let avg = slice.reduce((a,b)=>a+b.close,0)/20;
+         smaArr.push({ time: slice[slice.length-1].time, value: avg });
+    }
+
+    candleSeries.setData(rawData);
+    smaLine.setData(smaArr);
+    
+    // EMA Line data (calculate approx)
+    let prev = rawData[rawData.length-1].close;
+    const emaArr = [];
+    for(let i=0; i<rawData.length; i+=10) {
+         emaArr.push({ time: rawData[i].time, value: prev }); // Simplified EMA rendering for visual demo
+         prev += (rawData[i].close - prev) * 0.05; 
+    }
+    emaLine.setData(emaArr);
+
+    chart.timeScale().fitContent();
+    
+    // Update RSI values (independent array for the separate pane, handled by updateAnalysis primarily but can plot line)
+    // For simplicity in this demo, we just pass a dummy data to RSI series so it renders lines inside it
+    const rsiSlice = rawData.slice(-100).map(d => ({ time: d.time, value: (Math.random() * 40 ) + 30 }));
+    rsiaSeries.setData(rsiSlice);
+
+    updateAnalysis(rawData);
+    
+    document.getElementById('btn-buy').disabled = false;
+    document.getElementById('btn-sell').disabled = false;
+    
+    // Simulate live ticking
+    if(intervalId) clearInterval(intervalId);
+    intervalId = setInterval(tickLive, 1000);
+}
+
+function tickLive() {
+    const lastCandle = chartData.length ? chartData[chartData.length-1] : null;
+    if(lastCandle) {
+        // Tweak current candle slightly
+        const change = (Math.random() - 0.5) * (PAIRS[currentPair].volatility * 0.5);
+        lastCandle.close += change;
+        candleSeries.update(lastCandle);
+    } else {
+         generateDataAndRender(currentPair);
+         return; 
+    }
+    
+    // Update current header price
+    document.getElementById('current-price').innerHTML = `${lastCandle.close.toFixed(4)} <i class="fa-solid fa-circle text-[10px]"></i>`;
+}
+
+function renderWatchlist() {
+    const list = document.getElementById('watchlist');
+    list.innerHTML = '';
+    Object.keys(PAIRS).forEach(p => {
+        const div = document.createElement('div');
+        div.className = `pair-item ${p === currentPair ? 'active' : ''} px-3 py-2 flex justify-between items-center`;
+        div.onclick = () => { 
+            currentPair = p; 
+            renderWatchlist(); 
+            generateDataAndRender(p); 
+        };
+        
+        // Fake price change
+        const pct = (Math.random() * 2 - 1).toFixed(2);
+        const color = pct >= 0 ? 'buy' : 'sell';
+        
+        div.innerHTML = `
+            <div class="flex flex-col">
+                <span class="font-bold text-sm text-white">${p}</span>
+                <span class="text-xs text-gray-500">${PAIRS[p].volatility > 50 ? 'CFD' : 'FXY'}</span>
+            </div>
+            <div class="text-right">
+                <div class="font-mono text-sm ${pct>=0?'text-buy':'text-sell'}" id="wp-${p}">--</div>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// --- ACTIONS ---
+function setIntervalMs(ms) {
+    intervalMs = ms;
+    // Re-init chart with different look
+    initChart(); 
+}
+
+function regenerateData() {
+    currentPair = Object.keys(PAIRS)[Math.floor(Math.random()*Object.keys(PAIRS).length)];
+    renderWatchlist();
+    generateDataAndRender(currentPair);
+}
+
+function simTrade(type) {
+    const btn = type === 'buy' ? document.getElementById('btn-buy') : document.getElementById('btn-sell');
+    const price = parseFloat(document.getElementById('current-price').innerText.replace('<i class="fa-solid fa-circle text-[10px]"></i>',''));
+    
+    if(type === 'buy') {
+         PAIRS[currentPair].price = price + 0.5; // Simulate spike up due to buy volume
+    } else {
+        PAIRS[currentPair].price = price - 0.5;
+    }
+    
+    const history = document.getElementById('trade-history');
+    history.innerHTML += `
+        <tr class="${type === 'buy' ? 'text-buy' : 'text-sell'} border-b border-gray-800"><td class="py-2 font-bold">${type.toUpperCase()}</td><td>${price.toFixed(4)}</td><td class="font-mono">+${(Math.random()*5).toFixed(2)}</td></tr>
+    `;
+    
+    // Visual feedback
+    const origText = btn.innerText;
+    btn.innerText = type === 'buy' ? 'EXECUTING...' : 'EXECUTING...';
+    setTimeout(() => btn.innerText = origText, 1000);
+}
+
+function updateSettings() { 
+    initChart(); 
+} // Simplified: just re-renders with fresh random data
+
+function updateTheme(opacity) {
+     document.documentElement.style.setProperty('--panel-bg', `rgba(30, 34, 45, ${opacity/100})`);
+}
+
+// --- INIT ---
+window.addEventListener('load', () => {
+    initChart();
+    renderWatchlist();
+});
+
+window.addEventListener('resize', () => {
+    if(chart) chart.applyOptions({ width: document.getElementById('chart-container').clientWidth, height: 600 });
+});
+
+</script>
+</body>
+</html>

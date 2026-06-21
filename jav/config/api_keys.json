@@ -1,0 +1,12 @@
+{
+    "stt_engine": "whisper",
+    "stt_model": "base",
+    "stt_language": "auto",
+    "llm_provider": "ollama",
+    "llm_url": "http://localhost:11434",
+    "llm_model": "qwen2.5:7b",
+    "tts_engine": "kokoro",
+    "tts_voice": "bm_george",
+    "tts_speed": "1.2",
+    "elevenlabs_api_key": ""
+}
